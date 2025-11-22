@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { validateUsername, validatePassword, validateLoginForm } from '../utils/login-validation';
+import { validateUsername, validatePassword, validateLoginForm } from '../utils/loginValidation';
 
 describe('validateUsername', () => {
   describe('trường hợp username rỗng', () => {
