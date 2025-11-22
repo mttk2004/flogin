@@ -1,529 +1,603 @@
-# Tính Năng Product Management - Phân Tích Yêu Cầu
+# Tính Năng Quản Lý Sản Phẩm - Phân Tích Yêu Cầu
 
-## 1. Tổng Quan Tính Năng
-
-Product Management là chức năng quản lý sản phẩm trong hệ thống, cho phép người dùng thực hiện các thao tác CRUD (Create, Read, Update, Delete) đối với thông tin sản phẩm.
-
-### 1.1 Mục Đích
-- Quản lý thông tin sản phẩm trong hệ thống
-- Hỗ trợ các thao tác thêm, xem, sửa, xóa sản phẩm
-- Đảm bảo tính toàn vẹn và hợp lệ của dữ liệu sản phẩm
-
-### 1.2 Phạm Vi
-- Thêm sản phẩm mới (Create)
-- Xem danh sách và chi tiết sản phẩm (Read)
-- Cập nhật thông tin sản phẩm (Update)
-- Xóa sản phẩm (Delete)
+**Ngày:** 22 Tháng 11, 2025
+**Dự Án:** FloginFE_BE - Đăng Nhập & Quản Lý Sản Phẩm
+**Tính Năng:** Quản Lý Sản Phẩm (CRUD Operations)
 
 ---
 
-## 2. Yêu Cầu Chức Năng Chi Tiết
+## 1. Tổng Quan
 
-### 2.1 Create Product (Thêm Sản Phẩm Mới)
-
-#### 2.1.1 Mô Tả
-Người dùng có thể thêm sản phẩm mới vào hệ thống với đầy đủ thông tin.
-
-#### 2.1.2 Input Fields
-- **Product Name** (Tên sản phẩm): Bắt buộc
-- **Price** (Giá): Bắt buộc
-- **Quantity** (Số lượng): Bắt buộc
-- **Description** (Mô tả): Tùy chọn
-- **Category** (Danh mục): Bắt buộc
-
-#### 2.1.3 Business Rules
-1. User phải đã đăng nhập vào hệ thống
-2. User phải có quyền tạo sản phẩm
-3. Tất cả các trường bắt buộc phải được điền
-4. Dữ liệu phải tuân thủ validation rules (xem mục 3)
-5. Không cho phép tạo sản phẩm trùng tên (case-insensitive)
-
-#### 2.1.4 Expected Behavior
-- Khi tạo thành công:
-  - Sản phẩm được lưu vào database
-  - Hiển thị thông báo thành công
-  - Sản phẩm xuất hiện trong danh sách
-  - Redirect về trang danh sách sản phẩm
-
-- Khi tạo thất bại:
-  - Hiển thị thông báo lỗi cụ thể
-  - Giữ lại dữ liệu đã nhập
-  - Không lưu vào database
-
-### 2.2 Read Product (Xem Sản Phẩm)
-
-#### 2.2.1 Mô Tả
-Người dùng có thể xem danh sách sản phẩm và chi tiết từng sản phẩm.
-
-#### 2.2.2 Chức Năng Con
-
-**a) View Product List (Xem Danh Sách)**
-- Hiển thị tất cả sản phẩm trong hệ thống
-- Hỗ trợ phân trang (pagination)
-- Hỗ trợ tìm kiếm theo tên
-- Hỗ trợ lọc theo category
-- Hỗ trợ sắp xếp theo các trường (name, price, quantity)
-
-**b) View Product Details (Xem Chi Tiết)**
-- Hiển thị đầy đủ thông tin của một sản phẩm
-- Bao gồm: Name, Price, Quantity, Description, Category
-- Hiển thị thông tin metadata: Created Date, Last Modified Date
-
-#### 2.2.3 Business Rules
-1. User phải đã đăng nhập
-2. Chỉ hiển thị các sản phẩm chưa bị xóa (soft delete)
-3. Danh sách mặc định sắp xếp theo tên (A-Z)
-4. Phân trang mặc định: 10 sản phẩm/trang
-
-#### 2.2.4 Expected Behavior
-- Danh sách hiển thị đầy đủ thông tin cơ bản
-- Chi tiết sản phẩm hiển thị toàn bộ thông tin
-- Hỗ trợ refresh/reload danh sách
-- Hiển thị thông báo khi không tìm thấy sản phẩm
-
-### 2.3 Update Product (Cập Nhật Sản Phẩm)
-
-#### 2.3.1 Mô Tả
-Người dùng có thể cập nhật thông tin của sản phẩm đã tồn tại.
-
-#### 2.3.2 Updatable Fields
-Tất cả các trường đều có thể cập nhật:
-- Product Name
-- Price
-- Quantity
-- Description
-- Category
-
-#### 2.3.3 Business Rules
-1. User phải đã đăng nhập
-2. User phải có quyền cập nhật sản phẩm
-3. Sản phẩm phải tồn tại trong hệ thống
-4. Dữ liệu cập nhật phải tuân thủ validation rules
-5. Không cho phép đổi tên trùng với sản phẩm khác
-6. Ghi lại thời gian cập nhật (Last Modified Date)
-
-#### 2.3.4 Expected Behavior
-- Khi cập nhật thành công:
-  - Dữ liệu được lưu vào database
-  - Hiển thị thông báo thành công
-  - Cập nhật Last Modified Date
-  - Hiển thị thông tin mới
-
-- Khi cập nhật thất bại:
-  - Hiển thị thông báo lỗi cụ thể
-  - Giữ lại dữ liệu đã nhập
-  - Không thay đổi dữ liệu cũ
-
-### 2.4 Delete Product (Xóa Sản Phẩm)
-
-#### 2.4.1 Mô Tả
-Người dùng có thể xóa sản phẩm khỏi hệ thống.
-
-#### 2.4.2 Delete Options
-- **Soft Delete** (Xóa mềm - Khuyến nghị):
-  - Đánh dấu sản phẩm là đã xóa
-  - Không hiển thị trong danh sách thường
-  - Có thể khôi phục
-
-- **Hard Delete** (Xóa cứng):
-  - Xóa vĩnh viễn khỏi database
-  - Không thể khôi phục
-
-#### 2.4.3 Business Rules
-1. User phải đã đăng nhập
-2. User phải có quyền xóa sản phẩm
-3. Sản phẩm phải tồn tại trong hệ thống
-4. Yêu cầu xác nhận trước khi xóa
-5. Kiểm tra sản phẩm có đang được sử dụng trong đơn hàng không
-6. Nếu sản phẩm đang trong đơn hàng chưa hoàn thành, không cho phép xóa
-
-#### 2.4.4 Expected Behavior
-- Hiển thị dialog xác nhận trước khi xóa
-- Khi xóa thành công:
-  - Sản phẩm biến mất khỏi danh sách
-  - Hiển thị thông báo thành công
-
-- Khi xóa thất bại:
-  - Hiển thị thông báo lỗi cụ thể
-  - Sản phẩm vẫn tồn tại
+Tài liệu này cung cấp phân tích toàn diện về các yêu cầu của tính năng Quản Lý Sản Phẩm, bao gồm các quy tắc xác thực, luồng nghiệp vụ CRUD (Create, Read, Update, Delete) và cơ chế xử lý lỗi. Phân tích này đóng vai trò là nền tảng cho việc thiết kế các test scenario và test case.
 
 ---
 
-## 3. Validation Rules (Quy Tắc Kiểm Tra Dữ Liệu)
+## 2. Các Quy Tắc Xác Thực
 
-### 3.1 Product Name (Tên Sản Phẩm)
+### 2.1 Quy Tắc Xác Thực Tên Sản Phẩm
 
-**Rule 1: Required Field**
-- Tên sản phẩm không được để rỗng
-- Error message: "Product name is required"
+| Mã Quy Tắc | Mô Tả Quy Tắc | Chi Tiết |
+|------------|---------------|----------|
+| VR_PROD_01 | Yêu Cầu Độ Dài | Phải từ 3 đến 100 ký tự (bao gồm cả 2 đầu mút) |
+| VR_PROD_02 | Trường Bắt Buộc | Tên sản phẩm không được để trống hoặc null |
+| VR_PROD_03 | Ký Tự Cho Phép | Cho phép chữ, số, khoảng trắng và một số ký tự đặc biệt (dấu gạch ngang, gạch dưới) |
+| VR_PROD_04 | Không Chỉ Khoảng Trắng | Tên không được chỉ chứa khoảng trắng |
+| VR_PROD_05 | Trim Khoảng Trắng | Tự động loại bỏ khoảng trắng ở đầu và cuối |
+| VR_PROD_06 | Tên Duy Nhất | Tên sản phẩm phải là duy nhất trong hệ thống |
 
-**Rule 2: Length Constraints**
-- Độ dài tối thiểu: 3 ký tự
-- Độ dài tối đa: 100 ký tự
-- Error messages:
-  - "Product name must be at least 3 characters"
-  - "Product name must not exceed 100 characters"
+**Ví Dụ Tên Sản Phẩm Hợp Lệ:**
+- `Laptop Dell XPS 13` ✅
+- `Điện thoại iPhone 15 Pro` ✅
+- `Tai nghe Sony WH-1000XM5` ✅
+- `ABC` (độ dài tối thiểu) ✅
 
-**Rule 3: Format**
-- Chấp nhận: chữ cái, số, khoảng trắng, dấu gạch ngang (-), dấu gạch dưới (_)
-- Không chấp nhận: ký tự đặc biệt như @, #, $, %, &
-- Error message: "Product name contains invalid characters"
-
-**Rule 4: Uniqueness**
-- Tên sản phẩm phải duy nhất (case-insensitive)
-- Error message: "Product name already exists"
-
-**Rule 5: Whitespace**
-- Tự động trim khoảng trắng đầu/cuối
-- Không chấp nhận chỉ có khoảng trắng
-- Error message: "Product name cannot be only whitespace"
-
-### 3.2 Price (Giá)
-
-**Rule 1: Required Field**
-- Giá không được để rỗng
-- Error message: "Price is required"
-
-**Rule 2: Data Type**
-- Phải là số (number/decimal)
-- Chấp nhận số thập phân (tối đa 2 chữ số sau dấu phẩy)
-- Error message: "Price must be a valid number"
-
-**Rule 3: Value Constraints**
-- Giá trị tối thiểu: > 0 (lớn hơn 0, không bằng 0)
-- Giá trị tối đa: <= 999,999,999
-- Error messages:
-  - "Price must be greater than 0"
-  - "Price must not exceed 999,999,999"
-
-**Rule 4: Format**
-- Định dạng: số dương với tối đa 2 chữ số thập phân
-- Ví dụ hợp lệ: 100, 99.99, 1000000
-- Ví dụ không hợp lệ: -50, 0, 99.999, 1000000000
-- Error message: "Price format is invalid"
-
-### 3.3 Quantity (Số Lượng)
-
-**Rule 1: Required Field**
-- Số lượng không được để rỗng
-- Error message: "Quantity is required"
-
-**Rule 2: Data Type**
-- Phải là số nguyên (integer)
-- Không chấp nhận số thập phân
-- Error message: "Quantity must be an integer"
-
-**Rule 3: Value Constraints**
-- Giá trị tối thiểu: >= 0 (chấp nhận 0 - sản phẩm hết hàng)
-- Giá trị tối đa: <= 99,999
-- Error messages:
-  - "Quantity cannot be negative"
-  - "Quantity must not exceed 99,999"
-
-**Rule 4: Special Cases**
-- Quantity = 0: Sản phẩm được đánh dấu "Out of Stock"
-- Warning message khi quantity < 10: "Low stock warning"
-
-### 3.4 Description (Mô Tả)
-
-**Rule 1: Optional Field**
-- Mô tả có thể để trống
-- Không bắt buộc nhập
-
-**Rule 2: Length Constraints**
-- Độ dài tối đa: 500 ký tự
-- Error message: "Description must not exceed 500 characters"
-
-**Rule 3: Format**
-- Chấp nhận: tất cả ký tự, bao gồm ký tự đặc biệt
-- Hỗ trợ xuống dòng (line breaks)
-- Tự động trim khoảng trắng đầu/cuối
-
-**Rule 4: Sanitization**
-- Loại bỏ HTML tags để tránh XSS
-- Escape các ký tự đặc biệt khi hiển thị
-
-### 3.5 Category (Danh Mục)
-
-**Rule 1: Required Field**
-- Category không được để rỗng
-- Error message: "Category is required"
-
-**Rule 2: Valid Selection**
-- Phải chọn từ danh sách categories có sẵn
-- Không chấp nhận giá trị tùy ý
-- Error message: "Please select a valid category"
-
-**Rule 3: Category List**
-Danh sách categories mặc định:
-- Electronics (Điện tử)
-- Clothing (Quần áo)
-- Food & Beverage (Thực phẩm & Đồ uống)
-- Books (Sách)
-- Home & Garden (Nhà cửa & Vườn)
-- Sports & Outdoors (Thể thao & Ngoài trời)
-- Toys & Games (Đồ chơi & Trò chơi)
-- Health & Beauty (Sức khỏe & Làm đẹp)
-- Automotive (Ô tô)
-- Other (Khác)
-
-**Rule 4: Dependency**
-- Category phải tồn tại và đang active trong hệ thống
-- Nếu category bị xóa/inactive, không cho phép chọn
+**Ví Dụ Tên Sản Phẩm Không Hợp Lệ:**
+- `AB` ❌ (quá ngắn)
+- `` ❌ (trống)
+- `   ` ❌ (chỉ khoảng trắng)
+- Tên đã tồn tại trong hệ thống ❌ (trùng lặp)
 
 ---
 
-## 4. Error Handling (Xử Lý Lỗi)
+### 2.2 Quy Tắc Xác Thực Giá Sản Phẩm
 
-### 4.1 Validation Errors
-- Hiển thị lỗi ngay bên dưới field tương ứng
-- Đánh dấu field lỗi bằng màu đỏ
-- Hiển thị tất cả lỗi validation cùng lúc
-- Focus vào field đầu tiên có lỗi
+| Mã Quy Tắc | Mô Tả Quy Tắc | Chi Tiết |
+|------------|---------------|----------|
+| VR_PRICE_01 | Giá Trị Dương | Giá phải lớn hơn 0 |
+| VR_PRICE_02 | Giá Trị Tối Đa | Giá không được vượt quá 999,999,999 VNĐ |
+| VR_PRICE_03 | Trường Bắt Buộc | Giá không được để trống hoặc null |
+| VR_PRICE_04 | Định Dạng Số | Phải là số nguyên hoặc số thập phân (tối đa 2 chữ số thập phân) |
+| VR_PRICE_05 | Không Âm | Không chấp nhận giá trị âm |
 
-### 4.2 System Errors
-- Database connection errors
-- Server errors (500)
-- Network timeout
-- Message: "An error occurred. Please try again later."
+**Ví Dụ Giá Hợp Lệ:**
+- `1000` ✅ (1,000 VNĐ)
+- `25000000` ✅ (25,000,000 VNĐ)
+- `999999999` ✅ (999,999,999 VNĐ - tối đa)
+- `15000.50` ✅ (có thập phân)
 
-### 4.3 Business Logic Errors
-- Duplicate product name
-- Product not found
-- Permission denied
-- Cannot delete product (in use)
+**Ví Dụ Giá Không Hợp Lệ:**
+- `0` ❌ (không dương)
+- `-5000` ❌ (âm)
+- `1000000000` ❌ (vượt quá giới hạn)
+- `` ❌ (trống)
 
-### 4.4 Error Response Format
+---
+
+### 2.3 Quy Tắc Xác Thực Số Lượng
+
+| Mã Quy Tắc | Mô Tả Quy Tắc | Chi Tiết |
+|------------|---------------|----------|
+| VR_QTY_01 | Không Âm | Số lượng phải lớn hơn hoặc bằng 0 |
+| VR_QTY_02 | Giá Trị Tối Đa | Số lượng không được vượt quá 99,999 |
+| VR_QTY_03 | Trường Bắt Buộc | Số lượng không được để trống hoặc null |
+| VR_QTY_04 | Số Nguyên | Phải là số nguyên (không chấp nhận thập phân) |
+| VR_QTY_05 | Giá Trị Mặc Định | Mặc định là 0 nếu không được cung cấp |
+
+**Ví Dụ Số Lượng Hợp Lệ:**
+- `0` ✅ (hết hàng)
+- `100` ✅
+- `99999` ✅ (tối đa)
+- `5000` ✅
+
+**Ví Dụ Số Lượng Không Hợp Lệ:**
+- `-10` ❌ (âm)
+- `100000` ❌ (vượt quá giới hạn)
+- `50.5` ❌ (không nguyên)
+- `` ❌ (trống)
+
+---
+
+### 2.4 Quy Tắc Xác Thực Mô Tả
+
+| Mã Quy Tắc | Mô Tả Quy Tắc | Chi Tiết |
+|------------|---------------|----------|
+| VR_DESC_01 | Độ Dài Tối Đa | Không được vượt quá 500 ký tự |
+| VR_DESC_02 | Trường Tùy Chọn | Có thể để trống (không bắt buộc) |
+| VR_DESC_03 | Ký Tự Cho Phép | Cho phép tất cả ký tự Unicode |
+| VR_DESC_04 | Trim Khoảng Trắng | Tự động loại bỏ khoảng trắng ở đầu và cuối |
+
+**Ví Dụ Mô Tả Hợp Lệ:**
+- `Laptop cao cấp, màn hình 13 inch, RAM 16GB` ✅
+- `` ✅ (trống - cho phép)
+- Mô tả dài 500 ký tự ✅
+- `Điện thoại thông minh với camera 48MP, pin 5000mAh` ✅
+
+**Ví Dụ Mô Tả Không Hợp Lệ:**
+- Mô tả dài hơn 500 ký tự ❌
+
+---
+
+### 2.5 Quy Tắc Xác Thực Danh Mục
+
+| Mã Quy Tắc | Mô Tả Quy Tắc | Chi Tiết |
+|------------|---------------|----------|
+| VR_CAT_01 | Trường Bắt Buộc | Danh mục không được để trống hoặc null |
+| VR_CAT_02 | Giá Trị Hợp Lệ | Phải là một trong các danh mục được định nghĩa trước |
+| VR_CAT_03 | Tồn Tại Trong Hệ Thống | ID danh mục phải tồn tại trong bảng categories |
+
+**Danh Mục Được Định Nghĩa:**
+- `Điện tử` (Electronics)
+- `Thời trang` (Fashion)
+- `Gia dụng` (Home & Living)
+- `Thực phẩm` (Food & Beverage)
+- `Sách` (Books)
+- `Thể thao` (Sports)
+- `Khác` (Others)
+
+**Ví Dụ Danh Mục Hợp Lệ:**
+- `Điện tử` ✅
+- `Thời trang` ✅
+
+**Ví Dụ Danh Mục Không Hợp Lệ:**
+- `` ❌ (trống)
+- `Danh mục không tồn tại` ❌
+- `null` ❌
+
+---
+
+## 3. Các Luồng Nghiệp Vụ CRUD
+
+### 3.1 Luồng Tạo Sản Phẩm (Create)
+
+```mermaid
+sequenceDiagram
+    actor User as Người Dùng
+    participant UI as Trang Quản Lý
+    participant API as Backend API
+    participant Valid as Validation Service
+    participant DB as Database
+
+    User->>UI: Click nút "Thêm Sản Phẩm"
+    UI->>UI: Hiển thị form nhập liệu
+    User->>UI: Nhập thông tin sản phẩm
+    User->>UI: Click nút "Lưu"
+    UI->>UI: Xác thực phía client
+    UI->>API: POST /api/products
+    API->>Valid: Xác thực dữ liệu
+    Valid->>DB: Kiểm tra tên trùng lặp
+    DB-->>Valid: Kết quả kiểm tra
+    Valid-->>API: Kết quả xác thực
+    API->>DB: INSERT sản phẩm mới
+    DB-->>API: ID sản phẩm mới
+    API-->>UI: 201 Created + dữ liệu sản phẩm
+    UI->>UI: Hiển thị thông báo thành công
+    UI->>UI: Refresh danh sách sản phẩm
+```
+
+**Các Bước Chi Tiết:**
+
+1. **Hiển Thị Form**
+   - User click nút "Thêm Sản Phẩm"
+   - Hiển thị modal/form với các trường:
+     * Tên sản phẩm (bắt buộc)
+     * Giá (bắt buộc)
+     * Số lượng (bắt buộc)
+     * Mô tả (tùy chọn)
+     * Danh mục (bắt buộc - dropdown)
+
+2. **Nhập Dữ Liệu**
+   - User nhập thông tin vào các trường
+   - Xác thực real-time khi user nhập
+   - Hiển thị error message ngay lập tức nếu có lỗi
+
+3. **Submit Form**
+   - User click nút "Lưu"
+   - Xác thực toàn bộ form
+   - Nếu có lỗi, hiển thị và không gửi request
+   - Nếu hợp lệ, gửi POST request
+
+4. **Xử Lý Phía Server**
+   - Xác thực lại dữ liệu
+   - Kiểm tra tên sản phẩm trùng lặp
+   - Nếu hợp lệ, tạo sản phẩm mới trong database
+   - Trả về 201 Created với thông tin sản phẩm
+
+5. **Xử Lý Response**
+   - Hiển thị thông báo thành công
+   - Đóng form
+   - Refresh danh sách sản phẩm
+   - Highlight sản phẩm mới tạo
+
+---
+
+### 3.2 Luồng Đọc/Xem Sản Phẩm (Read)
+
+**3.2.1 Xem Danh Sách Sản Phẩm**
+
+```mermaid
+sequenceDiagram
+    actor User as Người Dùng
+    participant UI as Trang Quản Lý
+    participant API as Backend API
+    participant DB as Database
+
+    User->>UI: Truy cập trang Quản Lý Sản Phẩm
+    UI->>API: GET /api/products
+    API->>DB: SELECT * FROM products
+    DB-->>API: Danh sách sản phẩm
+    API-->>UI: 200 OK + dữ liệu
+    UI->>UI: Hiển thị bảng sản phẩm
+```
+
+**3.2.2 Xem Chi Tiết Sản Phẩm**
+
+- User click vào một sản phẩm trong danh sách
+- Gọi API: `GET /api/products/{id}`
+- Hiển thị modal/page với thông tin chi tiết
+- Bao gồm: Tên, Giá, Số lượng, Mô tả, Danh mục, Ngày tạo, Ngày cập nhật
+
+---
+
+### 3.3 Luồng Cập Nhật Sản Phẩm (Update)
+
+```mermaid
+sequenceDiagram
+    actor User as Người Dùng
+    participant UI as Trang Quản Lý
+    participant API as Backend API
+    participant Valid as Validation Service
+    participant DB as Database
+
+    User->>UI: Click nút "Sửa" trên sản phẩm
+    UI->>API: GET /api/products/{id}
+    API->>DB: SELECT sản phẩm theo ID
+    DB-->>API: Dữ liệu sản phẩm
+    API-->>UI: 200 OK + dữ liệu
+    UI->>UI: Hiển thị form với dữ liệu hiện tại
+    User->>UI: Chỉnh sửa thông tin
+    User->>UI: Click nút "Cập Nhật"
+    UI->>UI: Xác thực phía client
+    UI->>API: PUT /api/products/{id}
+    API->>Valid: Xác thực dữ liệu
+    Valid->>DB: Kiểm tra tên trùng (trừ chính nó)
+    DB-->>Valid: Kết quả
+    Valid-->>API: Kết quả xác thực
+    API->>DB: UPDATE sản phẩm
+    DB-->>API: Kết quả update
+    API-->>UI: 200 OK + dữ liệu đã update
+    UI->>UI: Hiển thị thông báo thành công
+    UI->>UI: Refresh danh sách
+```
+
+**Lưu Ý Quan Trọng:**
+- Khi cập nhật, phải load dữ liệu hiện tại vào form
+- Cho phép user thay đổi bất kỳ trường nào
+- Xác thực tương tự như Create
+- Khi kiểm tra tên trùng, phải loại trừ chính sản phẩm đang sửa
+- Cập nhật timestamp `updated_at`
+
+---
+
+### 3.4 Luồng Xóa Sản Phẩm (Delete)
+
+```mermaid
+sequenceDiagram
+    actor User as Người Dùng
+    participant UI as Trang Quản Lý
+    participant API as Backend API
+    participant DB as Database
+
+    User->>UI: Click nút "Xóa" trên sản phẩm
+    UI->>UI: Hiển thị dialog xác nhận
+    User->>UI: Click "Xác nhận xóa"
+    UI->>API: DELETE /api/products/{id}
+    API->>DB: SELECT sản phẩm (kiểm tra tồn tại)
+    DB-->>API: Dữ liệu sản phẩm
+    API->>DB: DELETE FROM products WHERE id=?
+    DB-->>API: Kết quả xóa
+    API-->>UI: 204 No Content
+    UI->>UI: Hiển thị thông báo thành công
+    UI->>UI: Xóa sản phẩm khỏi danh sách
+```
+
+**Lưu Ý Quan Trọng:**
+- Luôn hiển thị dialog xác nhận trước khi xóa
+- Kiểm tra sản phẩm có tồn tại không
+- Có thể implement soft delete (đánh dấu deleted) thay vì hard delete
+- Sau khi xóa, remove khỏi UI ngay lập tức (không cần refresh)
+
+---
+
+## 4. Xử Lý Lỗi
+
+### 4.1 Lỗi Xác Thực Phía Client
+
+| Mã Lỗi | Tình Huống | Thông Báo Lỗi | HTTP Status |
+|---------|-----------|----------------|-------------|
+| ERR_NAME_EMPTY | Tên sản phẩm trống | "Tên sản phẩm là bắt buộc" | N/A (Client) |
+| ERR_NAME_SHORT | Tên < 3 ký tự | "Tên sản phẩm phải có ít nhất 3 ký tự" | N/A (Client) |
+| ERR_NAME_LONG | Tên > 100 ký tự | "Tên sản phẩm không được vượt quá 100 ký tự" | N/A (Client) |
+| ERR_PRICE_EMPTY | Giá trống | "Giá sản phẩm là bắt buộc" | N/A (Client) |
+| ERR_PRICE_INVALID | Giá ≤ 0 hoặc không hợp lệ | "Giá phải lớn hơn 0" | N/A (Client) |
+| ERR_PRICE_MAX | Giá > 999,999,999 | "Giá không được vượt quá 999,999,999 VNĐ" | N/A (Client) |
+| ERR_QTY_EMPTY | Số lượng trống | "Số lượng là bắt buộc" | N/A (Client) |
+| ERR_QTY_NEGATIVE | Số lượng < 0 | "Số lượng không được âm" | N/A (Client) |
+| ERR_QTY_MAX | Số lượng > 99,999 | "Số lượng không được vượt quá 99,999" | N/A (Client) |
+| ERR_QTY_DECIMAL | Số lượng có thập phân | "Số lượng phải là số nguyên" | N/A (Client) |
+| ERR_DESC_LONG | Mô tả > 500 ký tự | "Mô tả không được vượt quá 500 ký tự" | N/A (Client) |
+| ERR_CAT_EMPTY | Danh mục trống | "Danh mục là bắt buộc" | N/A (Client) |
+
+### 4.2 Lỗi Xác Thực Phía Server
+
+| Mã Lỗi | Tình Huống | Thông Báo Lỗi | HTTP Status |
+|---------|-----------|----------------|-------------|
+| PROD_001 | Tên sản phẩm trùng lặp | "Tên sản phẩm đã tồn tại trong hệ thống" | 400 Bad Request |
+| PROD_002 | Sản phẩm không tồn tại | "Sản phẩm không tồn tại" | 404 Not Found |
+| PROD_003 | Dữ liệu không hợp lệ | "Dữ liệu không hợp lệ" | 400 Bad Request |
+| PROD_004 | Thiếu trường bắt buộc | "Thiếu thông tin bắt buộc" | 400 Bad Request |
+| PROD_005 | Danh mục không tồn tại | "Danh mục không tồn tại" | 400 Bad Request |
+| PROD_006 | Không có quyền | "Bạn không có quyền thực hiện thao tác này" | 403 Forbidden |
+| SYS_001 | Lỗi database | "Đã xảy ra lỗi. Vui lòng thử lại sau" | 500 Internal Server Error |
+| SYS_002 | Lỗi server | "Lỗi hệ thống. Vui lòng liên hệ quản trị viên" | 500 Internal Server Error |
+
+**Định Dạng Error Response:**
 ```json
 {
   "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Validation failed",
-    "details": [
-      {
-        "field": "productName",
-        "message": "Product name must be at least 3 characters"
-      },
-      {
-        "field": "price",
-        "message": "Price must be greater than 0"
-      }
-    ]
+  "errorCode": "PROD_001",
+  "message": "Tên sản phẩm đã tồn tại trong hệ thống",
+  "timestamp": "2025-11-22T10:30:00Z",
+  "field": "name"
+}
+```
+
+### 4.3 Chiến Lược Xử Lý Lỗi
+
+1. **Xác Thực Real-Time**
+   - Xác thực khi user đang nhập (on blur)
+   - Hiển thị lỗi ngay lập tức
+   - Clear error khi user sửa đúng
+
+2. **Thông Báo Thân Thiện**
+   - Thông báo rõ ràng, dễ hiểu
+   - Hướng dẫn cách sửa lỗi
+   - Hiển thị gần trường input có lỗi
+
+3. **Xử Lý Lỗi Server**
+   - Hiển thị thông báo lỗi từ server
+   - Log lỗi để debug
+   - Fallback message cho lỗi không xác định
+
+4. **Ngăn Chặn Submit**
+   - Disable nút Submit nếu form có lỗi
+   - Highlight các trường có lỗi
+   - Scroll đến trường lỗi đầu tiên
+
+---
+
+## 5. API Endpoints
+
+### 5.1 Tạo Sản Phẩm
+
+**Endpoint:** `POST /api/products`
+
+**Request Body:**
+```json
+{
+  "name": "Laptop Dell XPS 13",
+  "price": 25000000,
+  "quantity": 10,
+  "description": "Laptop cao cấp, màn hình 13 inch",
+  "categoryId": 1
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Tạo sản phẩm thành công",
+  "data": {
+    "id": 1,
+    "name": "Laptop Dell XPS 13",
+    "price": 25000000,
+    "quantity": 10,
+    "description": "Laptop cao cấp, màn hình 13 inch",
+    "categoryId": 1,
+    "categoryName": "Điện tử",
+    "createdAt": "2025-11-22T10:30:00Z",
+    "updatedAt": "2025-11-22T10:30:00Z"
   }
 }
 ```
 
 ---
 
-## 5. Success Scenarios (Kịch Bản Thành Công)
+### 5.2 Lấy Danh Sách Sản Phẩm
 
-### 5.1 Create Product Success
-```
-1. User navigates to Product page
-2. User clicks "Add New Product" button
-3. User fills in all required fields with valid data
-4. User clicks "Save" button
-5. System validates all fields
-6. System saves product to database
-7. System displays success message: "Product created successfully"
-8. System redirects to product list page
-9. New product appears in the list
-```
+**Endpoint:** `GET /api/products`
 
-### 5.2 Update Product Success
-```
-1. User navigates to Product list
-2. User clicks "Edit" on a product
-3. User updates one or more fields with valid data
-4. User clicks "Update" button
-5. System validates all fields
-6. System updates product in database
-7. System updates Last Modified Date
-8. System displays success message: "Product updated successfully"
-9. System shows updated product information
-```
+**Query Parameters:**
+- `page` (optional): Số trang (default: 1)
+- `size` (optional): Số sản phẩm mỗi trang (default: 10)
+- `sort` (optional): Sắp xếp theo trường (vd: `name`, `price`, `createdAt`)
+- `order` (optional): Thứ tự sắp xếp (`asc` hoặc `desc`)
 
-### 5.3 Delete Product Success
-```
-1. User navigates to Product list
-2. User clicks "Delete" on a product
-3. System shows confirmation dialog
-4. User confirms deletion
-5. System checks if product can be deleted
-6. System deletes product (soft delete)
-7. System displays success message: "Product deleted successfully"
-8. Product disappears from the list
-```
-
-### 5.4 View Product Success
-```
-1. User navigates to Product list
-2. System loads and displays all products
-3. User can see product information (Name, Price, Quantity, Category)
-4. User clicks on a product to view details
-5. System displays full product information
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "products": [
+      {
+        "id": 1,
+        "name": "Laptop Dell XPS 13",
+        "price": 25000000,
+        "quantity": 10,
+        "categoryName": "Điện tử"
+      },
+      {
+        "id": 2,
+        "name": "iPhone 15 Pro",
+        "price": 30000000,
+        "quantity": 5,
+        "categoryName": "Điện tử"
+      }
+    ],
+    "pagination": {
+      "currentPage": 1,
+      "totalPages": 5,
+      "totalItems": 50,
+      "itemsPerPage": 10
+    }
+  }
+}
 ```
 
 ---
 
-## 6. Security Requirements
+### 5.3 Lấy Chi Tiết Sản Phẩm
 
-### 6.1 Authentication
-- User phải đăng nhập để truy cập Product Management
-- Session timeout: 30 phút không hoạt động
-- Redirect về login page khi session hết hạn
+**Endpoint:** `GET /api/products/{id}`
 
-### 6.2 Authorization
-- Kiểm tra quyền trước khi thực hiện mỗi thao tác
-- Roles:
-  - Admin: Full CRUD
-  - Manager: Create, Read, Update
-  - Staff: Read only
-
-### 6.3 Input Validation
-- Server-side validation bắt buộc
-- Client-side validation để cải thiện UX
-- Sanitize input để tránh SQL Injection, XSS
-
-### 6.4 Data Protection
-- Encrypt sensitive data
-- Audit log cho các thao tác Create, Update, Delete
-- Backup định kỳ
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Laptop Dell XPS 13",
+    "price": 25000000,
+    "quantity": 10,
+    "description": "Laptop cao cấp, màn hình 13 inch",
+    "categoryId": 1,
+    "categoryName": "Điện tử",
+    "createdAt": "2025-11-22T10:30:00Z",
+    "updatedAt": "2025-11-22T10:30:00Z"
+  }
+}
+```
 
 ---
 
-## 7. Performance Requirements
+### 5.4 Cập Nhật Sản Phẩm
 
-### 7.1 Response Time
-- Product list load: < 2 seconds
-- Create/Update/Delete: < 1 second
-- Search: < 1 second
+**Endpoint:** `PUT /api/products/{id}`
 
-### 7.2 Scalability
-- Hỗ trợ tối thiểu 10,000 products
-- Pagination để xử lý danh sách lớn
+**Request Body:**
+```json
+{
+  "name": "Laptop Dell XPS 13 (Cập nhật)",
+  "price": 24000000,
+  "quantity": 8,
+  "description": "Laptop cao cấp, giảm giá",
+  "categoryId": 1
+}
+```
 
-### 7.3 Concurrent Users
-- Hỗ trợ ít nhất 100 concurrent users
-
----
-
-## 8. UI/UX Requirements
-
-### 8.1 Form Layout
-- Labels rõ ràng cho mỗi field
-- Required fields đánh dấu bằng dấu sao (*)
-- Placeholder text gợi ý định dạng
-- Help text cho các field phức tạp
-
-### 8.2 Feedback
-- Loading indicator khi xử lý
-- Success messages (màu xanh)
-- Error messages (màu đỏ)
-- Warning messages (màu vàng)
-
-### 8.3 Responsive Design
-- Tương thích desktop, tablet, mobile
-- Adaptive layout
-
----
-
-## 9. Testing Requirements
-
-### 9.1 Functional Testing
-- Test tất cả CRUD operations
-- Test validation rules
-- Test error handling
-- Test permissions
-
-### 9.2 Non-Functional Testing
-- Performance testing
-- Security testing
-- Usability testing
-- Compatibility testing
-
-### 9.3 Test Data
-- Valid test data cho happy paths
-- Invalid test data cho negative tests
-- Boundary values cho boundary tests
-- Edge cases data
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Cập nhật sản phẩm thành công",
+  "data": {
+    "id": 1,
+    "name": "Laptop Dell XPS 13 (Cập nhật)",
+    "price": 24000000,
+    "quantity": 8,
+    "description": "Laptop cao cấp, giảm giá",
+    "categoryId": 1,
+    "categoryName": "Điện tử",
+    "createdAt": "2025-11-22T10:30:00Z",
+    "updatedAt": "2025-11-22T11:00:00Z"
+  }
+}
+```
 
 ---
 
-## 10. Acceptance Criteria
+### 5.5 Xóa Sản Phẩm
 
-### 10.1 Create Product
-- ✓ User có thể tạo sản phẩm mới với dữ liệu hợp lệ
-- ✓ System validate tất cả fields theo rules
-- ✓ System hiển thị lỗi khi dữ liệu không hợp lệ
-- ✓ System không tạo sản phẩm trùng tên
-- ✓ Sản phẩm mới xuất hiện trong danh sách
+**Endpoint:** `DELETE /api/products/{id}`
 
-### 10.2 Read Product
-- ✓ User có thể xem danh sách tất cả sản phẩm
-- ✓ User có thể xem chi tiết từng sản phẩm
-- ✓ Hỗ trợ tìm kiếm, lọc, sắp xếp
-- ✓ Hỗ trợ pagination
+**Response (204 No Content):**
+Không có body, chỉ status code 204
 
-### 10.3 Update Product
-- ✓ User có thể cập nhật thông tin sản phẩm
-- ✓ System validate dữ liệu cập nhật
-- ✓ System lưu lại thời gian cập nhật
-- ✓ Thông tin cập nhật hiển thị ngay lập tức
-
-### 10.4 Delete Product
-- ✓ User có thể xóa sản phẩm
-- ✓ System yêu cầu xác nhận trước khi xóa
-- ✓ System kiểm tra sản phẩm có đang được sử dụng
-- ✓ Sản phẩm biến mất khỏi danh sách sau khi xóa
+**Hoặc (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Xóa sản phẩm thành công"
+}
+```
 
 ---
 
-## 11. Dependencies (Phụ Thuộc)
+## 6. Yêu Cầu Phi Chức Năng
 
-### 11.1 External Systems
-- Database: MySQL/PostgreSQL
-- Authentication Service
-- Category Service (để lấy danh sách categories)
+### 6.1 Yêu Cầu Bảo Mật
 
-### 11.2 Prerequisites
-- User account đã được tạo
-- User đã đăng nhập
-- Category list đã có sẵn
+- **Xác Thực:** User phải đăng nhập để thực hiện CRUD
+- **Phân Quyền:** Chỉ ADMIN và MANAGER mới có quyền Create, Update, Delete
+- **Input Sanitization:** Làm sạch tất cả input để ngăn XSS và SQL Injection
+- **CSRF Protection:** Token CSRF cho các thao tác POST, PUT, DELETE
 
----
+### 6.2 Yêu Cầu Hiệu Năng
 
-## 12. Assumptions (Giả Định)
+- Thời gian response API < 1 giây ở tải bình thường
+- Hỗ trợ ít nhất 50 request đồng thời
+- Pagination cho danh sách sản phẩm (tránh load toàn bộ)
+- Cache danh mục để giảm query database
 
-1. User đã được training về cách sử dụng hệ thống
-2. Network connection ổn định
-3. Browser hỗ trợ JavaScript
-4. Database có đủ storage capacity
-5. Backup system đã được setup
+### 6.3 Yêu Cầu Trải Nghiệm Người Dùng
 
----
-
-## 13. Out of Scope (Ngoài Phạm Vi)
-
-1. Import/Export sản phẩm hàng loạt
-2. Product image upload
-3. Product variants (size, color)
-4. Inventory management integration
-5. Price history tracking
-6. Multi-language support
-7. Product reviews/ratings
-8. Related products suggestions
+- Form validation real-time
+- Loading indicator khi gọi API
+- Thông báo rõ ràng khi thành công/thất bại
+- Confirm dialog trước khi xóa
+- Responsive design cho mobile
 
 ---
 
-## 14. Future Enhancements
+## 7. Quy Tắc Nghiệp Vụ
 
-1. Bulk operations (create, update, delete nhiều sản phẩm)
-2. Advanced search với filters phức tạp
-3. Product templates
-4. Duplicate product feature
-5. Product status workflow (Draft, Published, Archived)
-6. Price scheduling
-7. Product bundles
-8. Analytics dashboard
+1. **Tên Sản Phẩm Duy Nhất:** Không được tạo 2 sản phẩm cùng tên
+2. **Giá Hợp Lý:** Giá phải nằm trong khoảng hợp lý (> 0 và ≤ 999,999,999)
+3. **Số Lượng Không Âm:** Số lượng có thể là 0 (hết hàng) nhưng không âm
+4. **Danh Mục Bắt Buộc:** Mỗi sản phẩm phải thuộc một danh mục
+5. **Audit Trail:** Lưu thông tin người tạo, người cập nhật, thời gian
+
+---
+
+## 8. Giả Định
+
+1. User đã đăng nhập và có quyền thực hiện thao tác
+2. Danh mục sản phẩm đã được tạo sẵn trong hệ thống
+3. Database có index trên trường `name` để tìm kiếm nhanh
+4. Không có tính năng upload ảnh trong phiên bản này
+
+---
+
+## 9. Ngoài Phạm Vi
+
+- Upload và quản lý hình ảnh sản phẩm
+- Quản lý biến thể sản phẩm (size, màu sắc)
+- Quản lý kho hàng phức tạp
+- Tích hợp với hệ thống thanh toán
+- Báo cáo và thống kê
+
+---
+
+## 10. Phụ Thuộc
+
+- **Backend:** Spring Boot, Spring Data JPA
+- **Database:** MySQL/PostgreSQL với table `products` và `categories`
+- **Frontend:** React, Axios cho API calls, React Hook Form cho form handling
+- **Validation:** Hibernate Validator (backend), Yup/Zod (frontend)
+
+---
+
+## 11. Tiêu Chí Chấp Nhận
+
+✅ User có thể tạo sản phẩm mới với đầy đủ thông tin
+✅ User có thể xem danh sách tất cả sản phẩm
+✅ User có thể xem chi tiết một sản phẩm
+✅ User có thể cập nhật thông tin sản phẩm
+✅ User có thể xóa sản phẩm (với xác nhận)
+✅ Validation hoạt động đúng cho tất cả các trường
+✅ Không cho phép tạo sản phẩm trùng tên
+✅ Thông báo lỗi rõ ràng và thân thiện
+✅ UI responsive và hoạt động mượt mà
+✅ API tuân thủ RESTful conventions
+
+---
