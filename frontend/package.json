@@ -13,14 +13,14 @@
     "cypress:run": "cypress run"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.64.2",
+    "axios": "^1.7.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.1.1",
-    "axios": "^1.7.9",
-    "@tanstack/react-query": "^5.64.2",
-    "zustand": "^5.0.2",
     "react-hook-form": "^7.54.2",
-    "zod": "^3.24.1"
+    "react-router-dom": "^7.1.1",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -31,6 +31,7 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/coverage-v8": "^4.0.12",
     "cypress": "^15.7.0",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
