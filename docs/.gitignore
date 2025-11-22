@@ -1,0 +1,19 @@
+# Documentation .gitignore
+
+# Generated documentation
+_build/
+_static/
+_templates/
+.doctrees/
+
+# Compiled documentation
+*.pdf.bak
+*.docx~
+
+# Temporary files
+*.tmp
+~$*
+
+# OS Files
+.DS_Store
+Thumbs.db
