@@ -1,0 +1,49 @@
+name: Login Tests CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-login:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Login Unit Tests
+        run: |
+          cd frontend
+          # Using vitest pattern matching for Login tests
+          npm test -- src/tests/LoginComponent.test.tsx src/tests/LoginMock.test.tsx
+
+      - name: Run Login E2E Tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: frontend
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+          spec: cypress/e2e/login.cy.ts
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: login-test-reports
+          path: |
+            frontend/coverage/
+            frontend/cypress/screenshots/
+            frontend/cypress/videos/
+          retention-days: 30
