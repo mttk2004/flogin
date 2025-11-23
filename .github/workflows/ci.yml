@@ -40,11 +40,19 @@ jobs:
         run: |
           cd backend
           mvn clean test -Dspring.profiles.active=test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flogindb
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: password
 
       - name: Run Backend Integration Tests
         run: |
           cd backend
           mvn verify -Dspring.profiles.active=test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flogindb
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: password
 
       - name: Generate Backend Test Coverage
         run: |
@@ -135,6 +143,9 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:8080/actuator/health 2>/dev/null; do sleep 2; done' || true
         env:
           SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flogindb
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: password
 
       - name: Install Frontend Dependencies
         run: |
