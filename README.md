@@ -123,8 +123,8 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
-cd jules_session_3766877870426791115
+git clone https://github.com/mttk2004/flogin.git
+cd flogin
 ```
 
 ### 2. Backend Setup
@@ -285,7 +285,7 @@ This project is created for educational purposes as part of Software Testing cou
 
 ## 👥 Authors
 
-- Student Name - Software Testing Assignment
+- Mai Trần Tuấn Kiệt
 
 ## 🙏 Acknowledgments
 

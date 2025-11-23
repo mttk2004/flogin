@@ -13,40 +13,41 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:5173") // Allow Frontend origin
 public class AuthController {
 
-  private final AuthService authService;
+    private final AuthService authService;
 
-  @Autowired
-  public AuthController(AuthService authService) {
-    this.authService = authService;
-  }
-
-  @PostMapping("/login")
-  public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
-    // Validation for empty body is handled by Spring's @RequestBody but we can add
-    // check
-    if (loginRequest == null) {
-      return ResponseEntity.badRequest()
-          .body(new LoginResponse(false, "Request body is missing", null));
+    @Autowired
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
-    AuthService.AuthenticationResult result = authService.authenticate(
-        loginRequest.getUsername(),
-        loginRequest.getPassword());
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+        // Validation for empty body is handled by Spring's @RequestBody but we can add check
+        if (loginRequest == null) {
+             return ResponseEntity.badRequest()
+                .body(new LoginResponse(false, "Request body is missing", null));
+        }
 
-    if (result.isSuccess()) {
-      return ResponseEntity.ok(
-          new LoginResponse(true, result.getMessage(), result.getToken()));
-    } else {
-      // Determine status code based on error
-      HttpStatus status = HttpStatus.UNAUTHORIZED;
-      if (result.getMessage().contains("bắt buộc") ||
-          result.getMessage().contains("ký tự") ||
-          result.getMessage().contains("chứa")) {
-        status = HttpStatus.BAD_REQUEST; // Validation error
-      }
+        AuthService.AuthenticationResult result = authService.authenticate(
+                loginRequest.getUsername(), 
+                loginRequest.getPassword()
+        );
 
-      return ResponseEntity.status(status)
-          .body(new LoginResponse(false, result.getMessage(), null));
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(
+                new LoginResponse(true, result.getMessage(), result.getToken())
+            );
+        } else {
+            // Determine status code based on error
+            HttpStatus status = HttpStatus.UNAUTHORIZED;
+            if (result.getMessage().contains("bắt buộc") || 
+                result.getMessage().contains("ký tự") ||
+                result.getMessage().contains("chứa")) {
+                status = HttpStatus.BAD_REQUEST; // Validation error
+            }
+
+            return ResponseEntity.status(status)
+                .body(new LoginResponse(false, result.getMessage(), null));
+        }
     }
-  }
 }

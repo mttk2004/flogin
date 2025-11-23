@@ -9,14 +9,14 @@ vi.mock('../services/authService', () => ({
 }));
 
 describe('Login Component Integration Tests', () => {
-
+  
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders login form correctly', () => {
     render(<Login />);
-
+    
     expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
     expect(screen.getByLabelText('Username')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe('Login Component Integration Tests', () => {
 
   it('handles user input interactions', () => {
     render(<Login />);
-
+    
     const usernameInput = screen.getByLabelText('Username');
     const passwordInput = screen.getByLabelText('Password');
 
@@ -48,7 +48,7 @@ describe('Login Component Integration Tests', () => {
 
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } });
-
+    
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
     // Verify loading state
@@ -73,7 +73,7 @@ describe('Login Component Integration Tests', () => {
 
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrongpass' } });
-
+    
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
     await waitFor(() => {
@@ -90,7 +90,7 @@ describe('Login Component Integration Tests', () => {
 
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
-
+    
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
     await waitFor(() => {

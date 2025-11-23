@@ -1,20 +1,20 @@
 package com.flogin.dto;
 
-public class LoginResponse {
+import java.util.List;
+
+public class ApiResponse<T> {
     private boolean success;
     private String message;
-    private String token;
+    private T data;
 
-    // Constructors
-    public LoginResponse() {}
+    public ApiResponse() {}
 
-    public LoginResponse(boolean success, String message, String token) {
+    public ApiResponse(boolean success, String message, T data) {
         this.success = success;
         this.message = message;
-        this.token = token;
+        this.data = data;
     }
 
-    // Getters and Setters
     public boolean isSuccess() {
         return success;
     }
@@ -31,11 +31,11 @@ public class LoginResponse {
         this.message = message;
     }
 
-    public String getToken() {
-        return token;
+    public T getData() {
+        return data;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setData(T data) {
+        this.data = data;
     }
 }

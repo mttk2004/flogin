@@ -1,6 +1,7 @@
 package com.flogin.repository;
 
 import com.flogin.model.Product;
+import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
  * Provides CRUD operations for Product entities
  * Uses HashMap for simple in-memory storage
  */
+@Repository
 public class ProductRepository {
   private final Map<Long, Product> products = new HashMap<>();
   private Long currentId = 1L;

@@ -2,6 +2,7 @@ package com.flogin.service;
 
 import com.flogin.model.Product;
 import com.flogin.repository.ProductRepository;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.Optional;
  * Business logic for Product management with validation
  * Implements CRUD operations and pagination as per câu 2.2 requirements
  */
+@Service
 public class ProductService {
   private final ProductRepository productRepository;
 
