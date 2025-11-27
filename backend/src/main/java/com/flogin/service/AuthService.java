@@ -96,9 +96,9 @@ public class AuthService {
       return new ValidationResult(false, "Username không được vượt quá 50 ký tự");
     }
 
-    // Check for alphanumeric only (no special characters, no spaces)
-    if (!username.matches("^[a-zA-Z0-9]+$")) {
-      return new ValidationResult(false, "Username chỉ được chứa chữ cái và số");
+    // Check for alphanumeric and ., _, -
+    if (!username.matches("^[a-zA-Z0-9._-]+$")) {
+      return new ValidationResult(false, "Username chỉ được chứa chữ, số, và các ký tự ., _, -");
     }
 
     return new ValidationResult(true, null);

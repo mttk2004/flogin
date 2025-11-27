@@ -3,85 +3,101 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Login from '../components/Login';
 import * as authService from '../services/authService';
 
-// Mock authService
+// This is a MOCK test. The authService is mocked.
 vi.mock('../services/authService', () => ({
   login: vi.fn(),
 }));
 
-describe('Login Component Mocking Tests', () => {
+describe('Login Component Mock Tests', () => {
+  
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  // 1. Test với các phản hồi giả lập (mocked responses) cho trường hợp thành công
-  it('should handle successful login with mocked response', async () => {
+  it('renders login form correctly', () => {
+    render(<Login />);
+    
+    expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Username')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /đăng nhập/i })).toBeInTheDocument();
+  });
+
+  it('handles user input interactions', () => {
+    render(<Login />);
+    
+    const usernameInput = screen.getByLabelText('Username');
+    const passwordInput = screen.getByLabelText('Password');
+
+    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+
+    expect(usernameInput).toHaveValue('testuser');
+    expect(passwordInput).toHaveValue('password123');
+  });
+
+  it('submits form and calls API successfully', async () => {
     // Mock successful response
-    const mockSuccessResponse = {
+    (authService.login as any).mockResolvedValue({
       success: true,
       message: 'Đăng nhập thành công',
-      token: 'mock-token-123'
-    };
-    
-    // Setup the mock to return success
-    (authService.login as any).mockResolvedValue(mockSuccessResponse);
+      token: 'fake-token'
+    });
 
     render(<Login />);
 
-    // Fill form
-    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'validUser' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'validPass123' } });
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } });
     
-    // Submit
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
-    // Verify mock call and UI update
+    // Verify loading state
+    expect(screen.getByRole('button')).toBeDisabled();
+    expect(screen.getByRole('button')).toHaveTextContent('Đang xử lý...');
+
     await waitFor(() => {
-      expect(authService.login).toHaveBeenCalledWith('validUser', 'validPass123');
+      expect(authService.login).toHaveBeenCalledWith('testuser', 'password123');
       expect(screen.getByText('Đăng nhập thành công')).toBeInTheDocument();
     });
   });
 
-  // 1. Test với các phản hồi giả lập (mocked responses) cho trường hợp thất bại
-  it('should handle failed login with mocked error response', async () => {
+  it('displays error message when API call fails', async () => {
     // Mock error response
-    const mockErrorResponse = {
+    const errorMessage = 'Password không đúng';
+    (authService.login as any).mockRejectedValue({
       success: false,
-      message: 'Invalid credentials'
-    };
-
-    // Setup the mock to return error
-    (authService.login as any).mockRejectedValue(mockErrorResponse);
+      message: errorMessage
+    });
 
     render(<Login />);
 
-    // Fill form
-    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'wrongUser' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrongPass' } });
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrongpass' } });
     
-    // Submit
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
-    // Verify mock call and UI error
     await waitFor(() => {
-      expect(authService.login).toHaveBeenCalledWith('wrongUser', 'wrongPass');
-      expect(screen.getByRole('alert')).toHaveTextContent('Invalid credentials');
+      expect(authService.login).toHaveBeenCalled();
+      expect(screen.getByRole('alert')).toHaveTextContent(errorMessage);
     });
   });
 
-  // 1. Verify mock calls
-  it('should call authService.login with correct arguments', async () => {
-    (authService.login as any).mockResolvedValue({});
+  it('handles network errors', async () => {
+    // Mock network error
+    (authService.login as any).mockRejectedValue(new Error('Network Error'));
 
     render(<Login />);
 
-    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'userToCheck' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'passToCheck' } });
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
+    
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
     await waitFor(() => {
-      // Verify call arguments
-      expect(authService.login).toHaveBeenCalledTimes(1);
-      expect(authService.login).toHaveBeenCalledWith('userToCheck', 'passToCheck');
+      // Note: The component catches generic errors as well
+      // In the implementation it falls back to 'Đăng nhập thất bại' or 'Network Error' depending on implementation
+      // Let's verify that SOME alert is shown
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
   });
 });

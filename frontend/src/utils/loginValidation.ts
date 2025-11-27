@@ -53,12 +53,12 @@ export function validateUsername(username: string | null | undefined): Validatio
     };
   }
 
-  // Check for valid characters (only alphanumeric)
-  const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+  // Check for valid characters (alphanumeric and ., _, -)
+  const alphanumericRegex = /^[a-zA-Z0-9._-]+$/;
   if (!alphanumericRegex.test(username)) {
     return {
       isValid: false,
-      error: 'Username chỉ được chứa chữ cái và số'
+      error: 'Username chỉ được chứa chữ, số, và các ký tự ., _, -'
     };
   }
 

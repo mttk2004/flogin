@@ -1,103 +1,74 @@
+// THIS IS NOW A TRUE INTEGRATION TEST
+// It tests the integration of the Component -> Service -> Network Layer (mocked by MSW)
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import Login from '../components/Login';
-import * as authService from '../services/authService';
 
-// Mock authService
-vi.mock('../services/authService', () => ({
-  login: vi.fn(),
-}));
+// Note: There is NO vi.mock() here.
+// The test setup in `setup.ts` starts the MSW server,
+// which will intercept the actual network requests made by authService.
 
-describe('Login Component Integration Tests', () => {
-  
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+describe('Login Component Integration Test', () => {
 
-  it('renders login form correctly', () => {
+  it('should render the login form', () => {
     render(<Login />);
-    
-    expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
     expect(screen.getByLabelText('Username')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /đăng nhập/i })).toBeInTheDocument();
   });
 
-  it('handles user input interactions', () => {
-    render(<Login />);
-    
-    const usernameInput = screen.getByLabelText('Username');
-    const passwordInput = screen.getByLabelText('Password');
-
-    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-
-    expect(usernameInput).toHaveValue('testuser');
-    expect(passwordInput).toHaveValue('password123');
-  });
-
-  it('submits form and calls API successfully', async () => {
-    // Mock successful response
-    (authService.login as any).mockResolvedValue({
-      success: true,
-      message: 'Đăng nhập thành công',
-      token: 'fake-token'
-    });
-
+  it('should successfully log in and display a success message with valid credentials', async () => {
     render(<Login />);
 
+    // Simulate user typing valid credentials
+    // These match the credentials defined in our MSW handler (src/mocks/handlers.ts)
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } });
-    
+
+    // Simulate form submission
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
-    // Verify loading state
-    expect(screen.getByRole('button')).toBeDisabled();
-    expect(screen.getByRole('button')).toHaveTextContent('Đang xử lý...');
-
+    // The component will now call the real authService, which makes a real network request.
+    // MSW intercepts this request and returns the 200 OK response we defined.
+    // We wait for the UI to update with the success message.
     await waitFor(() => {
-      expect(authService.login).toHaveBeenCalledWith('testuser', 'password123');
       expect(screen.getByText('Đăng nhập thành công')).toBeInTheDocument();
     });
+
+    // The button should be re-enabled after completion
+    expect(screen.getByRole('button', { name: /đăng nhập/i })).not.toBeDisabled();
   });
 
-  it('displays error message when API call fails', async () => {
-    // Mock error response
-    const errorMessage = 'Password không đúng';
-    (authService.login as any).mockRejectedValue({
-      success: false,
-      message: errorMessage
-    });
-
+  it('should display an error message with invalid credentials', async () => {
     render(<Login />);
 
-    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
+    // Simulate user typing invalid credentials
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'wronguser' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrongpass' } });
-    
+
+    // Simulate form submission
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 
+    // MSW will intercept the network request and return the 401 Unauthorized response.
+    // We wait for the UI to update with the error message from the API.
     await waitFor(() => {
-      expect(authService.login).toHaveBeenCalled();
-      expect(screen.getByRole('alert')).toHaveTextContent(errorMessage);
+      expect(screen.getByRole('alert')).toHaveTextContent('Username hoặc password không đúng');
     });
+
+    // The button should be re-enabled after the error
+    expect(screen.getByRole('button', { name: /đăng nhập/i })).not.toBeDisabled();
   });
 
-  it('handles network errors', async () => {
-    // Mock network error
-    (authService.login as any).mockRejectedValue(new Error('Network Error'));
-
-    render(<Login />);
-
-    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'testuser' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
-    
-    fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
-
-    await waitFor(() => {
-      // Note: The component catches generic errors as well
-      // In the implementation it falls back to 'Đăng nhập thất bại' or 'Network Error' depending on implementation
-      // Let's verify that SOME alert is shown
-      expect(screen.getByRole('alert')).toBeInTheDocument();
-    });
-  });
+  // Note: This test is commented out because the Login component relies on native HTML5 'required' attribute validation,
+  // which prevents the form from submitting if fields are empty.
+  // The component's handleSubmit function (and thus API call) is not triggered for empty required fields.
+  // If client-side JavaScript validation were implemented in the component, this test would be valid.
+  // it('should display an API-returned validation error for empty submission', async () => {
+  //   render(<Login />);
+  //   fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
+  //   await waitFor(() => {
+  //     expect(screen.getByRole('alert')).toHaveTextContent('Username và password là bắt buộc');
+  //   });
+  //   expect(screen.getByRole('button', { name: /đăng nhập/i })).not.toBeDisabled();
+  // });
 });

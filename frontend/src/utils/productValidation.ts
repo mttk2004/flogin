@@ -2,11 +2,11 @@
  * Product Validation Module
  * Implements validation rules for Product Management functionality
  *
- * Validation Rules:
- * - Product Name: 1-200 characters, required
- * - Price: Must be >= 0, required (accepts 0 for free products)
- * - Quantity: Integer >= 0, required
- * - Description: Optional, max 1000 characters
+ * Validation Rules (as per assignment.pdf):
+ * - Product Name: 3-100 characters, required
+ * - Price: Must be > 0 and <= 999,999,999, required
+ * - Quantity: Integer >= 0 and <= 99,999, required
+ * - Description: Optional, max 500 characters
  * - Category: Required, must be from predefined list
  */
 
@@ -45,7 +45,7 @@ export type ProductCategory = typeof PRODUCT_CATEGORIES[number];
  * Validates product name
  * Rules:
  * - Required: must not be empty or null
- * - Length: 1-200 characters
+ * - Length: 3-100 characters
  * - No leading/trailing whitespace only
  *
  * @param name - The product name to validate
@@ -53,35 +53,27 @@ export type ProductCategory = typeof PRODUCT_CATEGORIES[number];
  */
 export function validateProductName(name: string | null | undefined): ValidationResult {
   // Check for null or empty
-  if (name == null || name === '') {
+  if (name == null || name.trim() === '') {
     return {
       isValid: false,
       error: 'Tên sản phẩm là bắt buộc'
     };
   }
 
-  // Check for whitespace only
-  if (name.trim() === '') {
-    return {
-      isValid: false,
-      error: 'Tên sản phẩm là bắt buộc'
-    };
-  }
-
-  // Check minimum length (after trim)
   const trimmedName = name.trim();
-  if (trimmedName.length < 1) {
+  // Check minimum length
+  if (trimmedName.length < 3) {
     return {
       isValid: false,
-      error: 'Tên sản phẩm là bắt buộc'
+      error: 'Tên sản phẩm phải có ít nhất 3 ký tự'
     };
   }
 
   // Check maximum length
-  if (trimmedName.length > 200) {
+  if (trimmedName.length > 100) {
     return {
       isValid: false,
-      error: 'Tên sản phẩm không được vượt quá 200 ký tự'
+      error: 'Tên sản phẩm không được vượt quá 100 ký tự'
     };
   }
 
@@ -95,15 +87,15 @@ export function validateProductName(name: string | null | undefined): Validation
  * Rules:
  * - Required: must not be null or undefined
  * - Must be a valid number
- * - Must be >= 0 (accepts 0 for free products)
- * - Maximum: 999999999.99 (1 billion - 1 cent)
+ * - Must be > 0
+ * - Maximum: 999,999,999
  *
  * @param price - The price to validate
  * @returns ValidationResult with isValid flag and optional error message
  */
 export function validatePrice(price: number | null | undefined | string): ValidationResult {
   // Check for null or undefined
-  if (price == null) {
+  if (price == null || price === '') {
     return {
       isValid: false,
       error: 'Giá sản phẩm là bắt buộc'
@@ -121,19 +113,19 @@ export function validatePrice(price: number | null | undefined | string): Valida
     };
   }
 
-  // Check for negative price
-  if (numPrice < 0) {
+  // Check for price > 0
+  if (numPrice <= 0) {
     return {
       isValid: false,
-      error: 'Giá sản phẩm không được âm'
+      error: 'Giá sản phẩm phải lớn hơn 0'
     };
   }
 
-  // Check maximum price (1 billion - boundary test)
-  if (numPrice > 999999999.99) {
+  // Check maximum price
+  if (numPrice > 999999999) {
     return {
       isValid: false,
-      error: 'Giá sản phẩm không được vượt quá 999,999,999.99'
+      error: 'Giá sản phẩm không được vượt quá 999,999,999'
     };
   }
 
@@ -147,15 +139,14 @@ export function validatePrice(price: number | null | undefined | string): Valida
  * Rules:
  * - Required: must not be null or undefined
  * - Must be a valid integer
- * - Must be >= 0
- * - Maximum: 999999
+ * - Must be >= 0 and <= 99,999
  *
  * @param quantity - The quantity to validate
  * @returns ValidationResult with isValid flag and optional error message
  */
 export function validateQuantity(quantity: number | null | undefined | string): ValidationResult {
   // Check for null or undefined
-  if (quantity == null) {
+  if (quantity == null || quantity === '') {
     return {
       isValid: false,
       error: 'Số lượng là bắt buộc'
@@ -190,10 +181,10 @@ export function validateQuantity(quantity: number | null | undefined | string): 
   }
 
   // Check maximum quantity
-  if (numQuantity > 999999) {
+  if (numQuantity > 99999) {
     return {
       isValid: false,
-      error: 'Số lượng không được vượt quá 999,999'
+      error: 'Số lượng không được vượt quá 99,999'
     };
   }
 
@@ -206,7 +197,7 @@ export function validateQuantity(quantity: number | null | undefined | string): 
  * Validates product description
  * Rules:
  * - Optional: can be empty or null
- * - Maximum length: 1000 characters
+ * - Maximum length: 500 characters
  *
  * @param description - The description to validate
  * @returns ValidationResult with isValid flag and optional error message
@@ -220,10 +211,10 @@ export function validateDescription(description: string | null | undefined): Val
   }
 
   // Check maximum length
-  if (description.length > 1000) {
+  if (description.length > 500) {
     return {
       isValid: false,
-      error: 'Mô tả không được vượt quá 1000 ký tự'
+      error: 'Mô tả không được vượt quá 500 ký tự'
     };
   }
 

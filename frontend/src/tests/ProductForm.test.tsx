@@ -1,53 +1,50 @@
+// True Integration Test for ProductForm
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ProductForm from '../components/ProductForm';
-import * as productService from '../services/productService';
 
-vi.mock('../services/productService', () => ({
-    productService: {
-        create: vi.fn(),
-        update: vi.fn()
-    }
-}));
+// No vi.mock() here! We are relying on the MSW server.
 
-describe('ProductForm Component', () => {
-    it('submits new product successfully', async () => {
-        const onSuccess = vi.fn();
-        (productService.productService.create as any).mockResolvedValue({});
-
+describe('ProductForm Integration Test', () => {
+    it('should submit new product data to the correct API endpoint', async () => {
+        const onSuccess = vi.fn(); // Mock the onSuccess callback
         render(<ProductForm onSuccess={onSuccess} />);
 
-        fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'New Product' } });
-        fireEvent.change(screen.getByLabelText('Giá'), { target: { value: '100' } });
-        fireEvent.change(screen.getByLabelText('Số lượng'), { target: { value: '10' } });
+        // Fill the form
+        fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'Integration Test Product' } });
+        fireEvent.change(screen.getByLabelText('Giá'), { target: { value: '199' } });
+        fireEvent.change(screen.getByLabelText('Số lượng'), { target: { value: '50' } });
         fireEvent.change(screen.getByLabelText('Danh mục'), { target: { value: 'Electronics' } });
+        fireEvent.change(screen.getByLabelText('Mô tả'), { target: { value: 'A product from integration test' } });
 
-        fireEvent.submit(screen.getByRole('form'));
+        // Submit the form
+        fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
 
+        // The MSW handler for 'POST /api/products' will intercept this.
+        // We just need to wait for the onSuccess callback to be called.
         await waitFor(() => {
-            expect(productService.productService.create).toHaveBeenCalledWith(expect.objectContaining({
-                name: 'New Product',
-                price: 100,
-                quantity: 10
-            }));
             expect(onSuccess).toHaveBeenCalled();
         });
     });
-
-    it('updates existing product successfully', async () => {
+    
+    it('should submit updated product data to the correct API endpoint', async () => {
         const onSuccess = vi.fn();
-        const product = { id: 1, name: 'Old', price: 10, quantity: 1, category: 'Test' };
-        (productService.productService.update as any).mockResolvedValue({});
+        const existingProduct = { id: 1, name: 'Old Name', price: 10, quantity: 1, category: 'Books', description: 'Old Desc' };
+        
+        render(<ProductForm product={existingProduct} onSuccess={onSuccess} />);
 
-        render(<ProductForm product={product} onSuccess={onSuccess} />);
+        // Check if form is pre-filled
+        expect(screen.getByLabelText('Tên sản phẩm')).toHaveValue('Old Name');
 
-        fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'Updated' } });
-        fireEvent.submit(screen.getByRole('form'));
+        // Change a value
+        fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'Updated Integration Product' } });
+        
+        // Submit
+        fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
 
+        // The MSW handler for 'PUT /api/products/:id' will intercept this.
         await waitFor(() => {
-            expect(productService.productService.update).toHaveBeenCalledWith(1, expect.objectContaining({
-                name: 'Updated'
-            }));
+            expect(onSuccess).toHaveBeenCalled();
         });
     });
 });

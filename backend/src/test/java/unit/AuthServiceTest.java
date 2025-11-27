@@ -105,7 +105,7 @@ class AuthServiceTest {
     }
 
     @Nested
-    @DisplayName("Các ký tự đặc biệt không hợp lệ")
+    @DisplayName("Các ký tự đặc biệt")
     class InvalidCharactersTests {
 
       @Test
@@ -113,31 +113,37 @@ class AuthServiceTest {
       void shouldReturnErrorWhenUsernameContainsAtSymbol() {
         AuthService.ValidationResult result = authService.validateUsername("user@name");
         assertFalse(result.isValid());
-        assertEquals("Username chỉ được chứa chữ cái và số", result.getError());
+        assertEquals("Username chỉ được chứa chữ, số, và các ký tự ., _, -", result.getError());
       }
 
       @Test
       @DisplayName("Nên trả về lỗi khi username chứa khoảng trắng")
       void shouldReturnErrorWhenUsernameContainsSpace() {
         AuthService.ValidationResult result = authService.validateUsername("user name");
+        // This fails the regex check because the regex doesn't include space
         assertFalse(result.isValid());
-        assertEquals("Username chỉ được chứa chữ cái và số", result.getError());
+        assertEquals("Username chỉ được chứa chữ, số, và các ký tự ., _, -", result.getError());
       }
 
       @Test
-      @DisplayName("Nên trả về lỗi khi username chứa dấu gạch dưới")
-      void shouldReturnErrorWhenUsernameContainsUnderscore() {
+      @DisplayName("Nên chấp nhận username chứa dấu gạch dưới")
+      void shouldAcceptUsernameWithUnderscore() {
         AuthService.ValidationResult result = authService.validateUsername("user_name");
-        assertFalse(result.isValid());
-        assertEquals("Username chỉ được chứa chữ cái và số", result.getError());
+        assertTrue(result.isValid());
       }
 
       @Test
-      @DisplayName("Nên trả về lỗi khi username chứa dấu chấm")
-      void shouldReturnErrorWhenUsernameContainsDot() {
+      @DisplayName("Nên chấp nhận username chứa dấu chấm")
+      void shouldAcceptUsernameWithDot() {
         AuthService.ValidationResult result = authService.validateUsername("user.name");
-        assertFalse(result.isValid());
-        assertEquals("Username chỉ được chứa chữ cái và số", result.getError());
+        assertTrue(result.isValid());
+      }
+
+      @Test
+      @DisplayName("Nên chấp nhận username chứa dấu gạch ngang")
+      void shouldAcceptUsernameWithHyphen() {
+        AuthService.ValidationResult result = authService.validateUsername("user-name");
+        assertTrue(result.isValid());
       }
     }
 
@@ -480,7 +486,7 @@ class AuthServiceTest {
 
         assertFalse(result.isSuccess());
         assertNull(result.getToken());
-        assertEquals("Username chỉ được chứa chữ cái và số", result.getMessage());
+        assertEquals("Username chỉ được chứa chữ, số, và các ký tự ., _, -", result.getMessage());
       }
 
       @Test

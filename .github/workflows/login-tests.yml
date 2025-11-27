@@ -26,8 +26,8 @@ jobs:
       - name: Run Login Unit Tests
         run: |
           cd frontend
-          # Using vitest pattern matching for Login tests
-          npm test -- src/tests/LoginComponent.test.tsx src/tests/LoginMock.test.tsx
+          # Use a pattern to run all tests related to Login
+          npm test -- "Login"
 
       - name: Run Login E2E Tests
         uses: cypress-io/github-action@v6

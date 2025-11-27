@@ -38,6 +38,10 @@ export class ProductPage {
     return cy.get('button[type="submit"]');
   }
 
+  getAddProductButton() {
+    return cy.get('.add-product-btn');
+  }
+
   // List Elements
   getProductTable() {
     return cy.get('.product-list table');

@@ -112,14 +112,24 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("Nên ném lỗi khi name vượt quá 200 ký tự")
+    @DisplayName("Nên ném lỗi khi name ngắn hơn 3 ký tự")
+    void shouldThrowExceptionWhenNameTooShort() {
+      validProduct.setName("ab");
+      IllegalArgumentException exception = assertThrows(
+          IllegalArgumentException.class,
+          () -> productService.createProduct(validProduct));
+      assertEquals("Tên sản phẩm phải có ít nhất 3 ký tự", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Nên ném lỗi khi name vượt quá 100 ký tự")
     void shouldThrowExceptionWhenNameTooLong() {
-      validProduct.setName("A".repeat(201));
+      validProduct.setName("A".repeat(101));
 
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class,
           () -> productService.createProduct(validProduct));
-      assertEquals("Tên sản phẩm không được vượt quá 200 ký tự", exception.getMessage());
+      assertEquals("Tên sản phẩm không được vượt quá 100 ký tự", exception.getMessage());
     }
 
     @Test
@@ -134,26 +144,19 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("Nên ném lỗi khi price âm")
-    void shouldThrowExceptionWhenPriceIsNegative() {
-      validProduct.setPrice(new BigDecimal("-10"));
-
+    @DisplayName("Nên ném lỗi khi price <= 0")
+    void shouldThrowExceptionWhenPriceIsZeroOrNegative() {
+      validProduct.setPrice(BigDecimal.ZERO);
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class,
           () -> productService.createProduct(validProduct));
-      assertEquals("Giá sản phẩm không được âm", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Nên chấp nhận price = 0")
-    void shouldAcceptPriceZero() {
-      validProduct.setPrice(BigDecimal.ZERO);
-      when(productRepository.save(any(Product.class))).thenReturn(validProduct);
-
-      Product result = productService.createProduct(validProduct);
-
-      assertNotNull(result);
-      assertEquals(BigDecimal.ZERO, result.getPrice());
+      assertEquals("Giá sản phẩm phải lớn hơn 0", exception.getMessage());
+      
+      validProduct.setPrice(new BigDecimal("-10"));
+      exception = assertThrows(
+          IllegalArgumentException.class,
+          () -> productService.createProduct(validProduct));
+      assertEquals("Giá sản phẩm phải lớn hơn 0", exception.getMessage());
     }
 
     @Test
@@ -164,7 +167,7 @@ class ProductServiceTest {
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class,
           () -> productService.createProduct(validProduct));
-      assertEquals("Giá sản phẩm không được vượt quá 999,999,999.99", exception.getMessage());
+      assertEquals("Giá sản phẩm không được vượt quá 999,999,999", exception.getMessage());
     }
 
     @Test
@@ -204,12 +207,12 @@ class ProductServiceTest {
     @Test
     @DisplayName("Nên ném lỗi khi quantity vượt quá maximum")
     void shouldThrowExceptionWhenQuantityExceedsMax() {
-      validProduct.setQuantity(1000000);
+      validProduct.setQuantity(100000);
 
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class,
           () -> productService.createProduct(validProduct));
-      assertEquals("Số lượng không được vượt quá 999,999", exception.getMessage());
+      assertEquals("Số lượng không được vượt quá 99,999", exception.getMessage());
     }
 
     @Test
@@ -225,14 +228,14 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("Nên ném lỗi khi description vượt quá 1000 ký tự")
+    @DisplayName("Nên ném lỗi khi description vượt quá 500 ký tự")
     void shouldThrowExceptionWhenDescriptionTooLong() {
-      validProduct.setDescription("A".repeat(1001));
+      validProduct.setDescription("A".repeat(501));
 
       IllegalArgumentException exception = assertThrows(
           IllegalArgumentException.class,
           () -> productService.createProduct(validProduct));
-      assertEquals("Mô tả không được vượt quá 1000 ký tự", exception.getMessage());
+      assertEquals("Mô tả không được vượt quá 500 ký tự", exception.getMessage());
     }
 
     @Test
@@ -530,47 +533,43 @@ class ProductServiceTest {
   class BoundaryTests {
 
     @Test
-    @DisplayName("Nên chấp nhận name có 200 ký tự (maximum)")
-    void shouldAcceptNameWith200Characters() {
-      validProduct.setName("A".repeat(200));
+    @DisplayName("Nên chấp nhận name có 100 ký tự (maximum)")
+    void shouldAcceptNameWith100Characters() {
+      validProduct.setName("A".repeat(100));
       when(productRepository.save(any(Product.class))).thenReturn(validProduct);
-
-      Product result = productService.createProduct(validProduct);
-
-      assertNotNull(result);
+      assertDoesNotThrow(() -> productService.createProduct(validProduct));
+    }
+    
+    @Test
+    @DisplayName("Nên chấp nhận name có 3 ký tự (minimum)")
+    void shouldAcceptNameWith3Characters() {
+      validProduct.setName("abc");
+      when(productRepository.save(any(Product.class))).thenReturn(validProduct);
+      assertDoesNotThrow(() -> productService.createProduct(validProduct));
     }
 
     @Test
-    @DisplayName("Nên chấp nhận price maximum (999,999,999.99)")
+    @DisplayName("Nên chấp nhận price maximum (999,999,999)")
     void shouldAcceptMaximumPrice() {
-      validProduct.setPrice(new BigDecimal("999999999.99"));
+      validProduct.setPrice(new BigDecimal("999999999"));
       when(productRepository.save(any(Product.class))).thenReturn(validProduct);
-
-      Product result = productService.createProduct(validProduct);
-
-      assertNotNull(result);
+      assertDoesNotThrow(() -> productService.createProduct(validProduct));
     }
 
     @Test
-    @DisplayName("Nên chấp nhận quantity maximum (999,999)")
+    @DisplayName("Nên chấp nhận quantity maximum (99,999)")
     void shouldAcceptMaximumQuantity() {
-      validProduct.setQuantity(999999);
+      validProduct.setQuantity(99999);
       when(productRepository.save(any(Product.class))).thenReturn(validProduct);
-
-      Product result = productService.createProduct(validProduct);
-
-      assertNotNull(result);
+      assertDoesNotThrow(() -> productService.createProduct(validProduct));
     }
 
     @Test
-    @DisplayName("Nên chấp nhận description có 1000 ký tự (maximum)")
-    void shouldAcceptDescriptionWith1000Characters() {
-      validProduct.setDescription("A".repeat(1000));
+    @DisplayName("Nên chấp nhận description có 500 ký tự (maximum)")
+    void shouldAcceptDescriptionWith500Characters() {
+      validProduct.setDescription("A".repeat(500));
       when(productRepository.save(any(Product.class))).thenReturn(validProduct);
-
-      Product result = productService.createProduct(validProduct);
-
-      assertNotNull(result);
+      assertDoesNotThrow(() -> productService.createProduct(validProduct));
     }
   }
 }

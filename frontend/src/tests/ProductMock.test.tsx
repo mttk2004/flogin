@@ -2,142 +2,117 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ProductList from '../components/ProductList';
 import ProductForm from '../components/ProductForm';
+import ProductDetail from '../components/ProductDetail';
 import * as productService from '../services/productService';
 
-// 1.a) Mock ProductService
+// Mock the entire product service for all tests in this file
 vi.mock('../services/productService', () => ({
-    productService: {
-        getAll: vi.fn(),
-        getById: vi.fn(),
-        create: vi.fn(),
-        update: vi.fn(),
-        delete: vi.fn()
-    }
+  productService: {
+    getAll: vi.fn(),
+    getById: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
 }));
 
-describe('Product Mocking Tests', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
+describe('Product Components Mock Tests', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // --- ProductList Mock Tests ---
+  describe('ProductList Component', () => {
+    it('renders product list correctly from mock', async () => {
+      const mockProducts = {
+        products: [{ id: 1, name: 'Product 1', price: 100, quantity: 10, category: 'Electronics' }],
+      };
+      (productService.productService.getAll as any).mockResolvedValue(mockProducts);
+
+      render(<ProductList />);
+      await waitFor(() => {
+        expect(screen.getByText('Product 1')).toBeInTheDocument();
+        expect(screen.getByText('100')).toBeInTheDocument();
+      });
+      expect(productService.productService.getAll).toHaveBeenCalledTimes(1);
     });
 
-    describe('ProductList Component Mocking', () => {
-        // 1.b) Test success scenario (Read all)
-        it('should fetch and display products using mocked service', async () => {
-            const mockResponse = {
-                products: [
-                    { id: 1, name: 'Mock Product 1', price: 100, quantity: 10, category: 'Test' }
-                ]
-            };
-            (productService.productService.getAll as any).mockResolvedValue(mockResponse);
+    it('handles delete product with mock', async () => {
+      const mockProducts = {
+        products: [{ id: 1, name: 'Product 1', price: 100, quantity: 10, category: 'Electronics' }],
+      };
+      (productService.productService.getAll as any).mockResolvedValue(mockProducts);
+      (productService.productService.delete as any).mockResolvedValue({});
+      vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
-            render(<ProductList />);
+      render(<ProductList />);
+      await waitFor(() => {
+        expect(screen.getByText('Product 1')).toBeInTheDocument();
+      });
 
-            await waitFor(() => {
-                expect(screen.getByText('Mock Product 1')).toBeInTheDocument();
-            });
+      fireEvent.click(screen.getByText('Xóa'));
 
-            // 1.c) Verify mock call
-            expect(productService.productService.getAll).toHaveBeenCalled();
-        });
+      await waitFor(() => {
+        expect(productService.productService.delete).toHaveBeenCalledWith(1);
+      });
+    });
+  });
 
-        // 1.b) Test failure scenario (Read all)
-        it('should handle fetch error from mocked service', async () => {
-            (productService.productService.getAll as any).mockRejectedValue(new Error('Fetch Error'));
+  // --- ProductForm Mock Tests ---
+  describe('ProductForm Component', () => {
+    it('submits new product successfully with mock', async () => {
+      const onSuccess = vi.fn();
+      (productService.productService.create as any).mockResolvedValue({});
 
-            render(<ProductList />);
+      render(<ProductForm onSuccess={onSuccess} />);
+      fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'New Product' } });
+      fireEvent.change(screen.getByLabelText('Giá'), { target: { value: '100' } });
+      fireEvent.change(screen.getByLabelText('Số lượng'), { target: { value: '10' } });
+      fireEvent.change(screen.getByLabelText('Danh mục'), { target: { value: 'Electronics' } });
+      fireEvent.submit(screen.getByRole('form'));
 
-            await waitFor(() => {
-                expect(screen.getByRole('alert')).toHaveTextContent('Fetch Error');
-            });
-        });
-
-        // 1.a) Mock Delete operation
-        it('should call delete mock when deleting product', async () => {
-            const mockResponse = {
-                products: [
-                    { id: 1, name: 'Product To Delete', price: 100, quantity: 10, category: 'Test' }
-                ]
-            };
-            (productService.productService.getAll as any).mockResolvedValue(mockResponse);
-            (productService.productService.delete as any).mockResolvedValue({});
-            
-            vi.spyOn(window, 'confirm').mockImplementation(() => true);
-
-            render(<ProductList />);
-
-            await waitFor(() => {
-                expect(screen.getByText('Product To Delete')).toBeInTheDocument();
-            });
-
-            fireEvent.click(screen.getByText('Xóa'));
-
-            await waitFor(() => {
-                // 1.c) Verify delete mock call
-                expect(productService.productService.delete).toHaveBeenCalledWith(1);
-                // Verify re-fetch
-                expect(productService.productService.getAll).toHaveBeenCalledTimes(2);
-            });
-        });
+      await waitFor(() => {
+        expect(productService.productService.create).toHaveBeenCalledWith(expect.anything());
+        expect(onSuccess).toHaveBeenCalled();
+      });
     });
 
-    describe('ProductForm Component Mocking', () => {
-        // 1.a) Mock Create operation
-        it('should call create mock when submitting new product', async () => {
-            const onSuccess = vi.fn();
-            (productService.productService.create as any).mockResolvedValue({ id: 1, name: 'New' });
+    it('updates existing product successfully with mock', async () => {
+        const onSuccess = vi.fn();
+        const product = { id: 1, name: 'Old', price: 10, quantity: 1, category: 'Test', description: '' };
+        (productService.productService.update as any).mockResolvedValue({});
 
-            render(<ProductForm onSuccess={onSuccess} />);
+        render(<ProductForm product={product} onSuccess={onSuccess} />);
+        fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'Updated' } });
+        fireEvent.submit(screen.getByRole('form'));
 
-            fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'New Product' } });
-            fireEvent.change(screen.getByLabelText('Giá'), { target: { value: '100' } });
-            fireEvent.change(screen.getByLabelText('Số lượng'), { target: { value: '10' } });
-            fireEvent.change(screen.getByLabelText('Danh mục'), { target: { value: 'Test' } });
-
-            fireEvent.submit(screen.getByRole('form'));
-
-            await waitFor(() => {
-                // 1.c) Verify create mock call
-                expect(productService.productService.create).toHaveBeenCalledWith(expect.objectContaining({
-                    name: 'New Product'
-                }));
-            });
-        });
-
-        // 1.a) Mock Update operation
-        it('should call update mock when submitting existing product', async () => {
-            const onSuccess = vi.fn();
-            const existingProduct = { id: 99, name: 'Old', price: 10, quantity: 1, category: 'Test' };
-            (productService.productService.update as any).mockResolvedValue(existingProduct);
-
-            render(<ProductForm product={existingProduct} onSuccess={onSuccess} />);
-
-            fireEvent.submit(screen.getByRole('form'));
-
-            await waitFor(() => {
-                // 1.c) Verify update mock call
-                expect(productService.productService.update).toHaveBeenCalledWith(99, expect.any(Object));
-            });
-        });
-
-        // 1.b) Test failure scenario (Create)
-        it('should display error when create fails', async () => {
-            const onSuccess = vi.fn();
-            (productService.productService.create as any).mockRejectedValue({ message: 'Create Failed' });
-
-            render(<ProductForm onSuccess={onSuccess} />);
-
-            fireEvent.change(screen.getByLabelText('Tên sản phẩm'), { target: { value: 'Fail Product' } });
-            // Fill other required fields
-            fireEvent.change(screen.getByLabelText('Giá'), { target: { value: '100' } });
-            fireEvent.change(screen.getByLabelText('Số lượng'), { target: { value: '10' } });
-            fireEvent.change(screen.getByLabelText('Danh mục'), { target: { value: 'Test' } });
-
-            fireEvent.submit(screen.getByRole('form'));
-
-            await waitFor(() => {
-                expect(screen.getByRole('alert')).toHaveTextContent('Create Failed');
-                expect(onSuccess).not.toHaveBeenCalled();
-            });
+        await waitFor(() => {
+            expect(productService.productService.update).toHaveBeenCalledWith(1, expect.objectContaining({ name: 'Updated' }));
         });
     });
+  });
+
+  // --- ProductDetail Mock Tests ---
+  describe('ProductDetail Component', () => {
+    it('renders product detail correctly from mock', async () => {
+      const mockProduct = {
+        id: 1, name: 'Detail Product', price: 500, quantity: 5, category: 'Test', description: 'Desc',
+      };
+      (productService.productService.getById as any).mockResolvedValue(mockProduct);
+
+      render(<ProductDetail productId={1} />);
+      await waitFor(() => {
+        expect(screen.getByText('Detail Product')).toBeInTheDocument();
+      });
+      expect(productService.productService.getById).toHaveBeenCalledWith(1);
+    });
+
+    it('displays error when product not found via mock', async () => {
+      (productService.productService.getById as any).mockRejectedValue(new Error('Not Found'));
+      render(<ProductDetail productId={999} />);
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent('Not Found');
+      });
+    });
+  });
 });

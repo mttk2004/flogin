@@ -1,42 +1,38 @@
+// True Integration Test for ProductDetail
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import ProductDetail from '../components/ProductDetail';
-import * as productService from '../services/productService';
+import { server } from '../mocks/server';
+import { http, HttpResponse } from 'msw';
 
-vi.mock('../services/productService', () => ({
-    productService: {
-        getById: vi.fn()
-    }
-}));
+// No vi.mock() here!
 
-describe('ProductDetail Component', () => {
-    it('renders product detail correctly', async () => {
-        const mockProduct = { 
-            id: 1, 
-            name: 'Detail Product', 
-            price: 500, 
-            quantity: 5, 
-            category: 'Test',
-            description: 'Desc' 
-        };
-        (productService.productService.getById as any).mockResolvedValue(mockProduct);
+describe('ProductDetail Integration Test', () => {
+  it('should fetch and display product details from the API', async () => {
+    // The default handler in `handlers.ts` for GET /api/products/1 will be used.
+    render(<ProductDetail productId={1} />);
 
-        render(<ProductDetail productId={1} />);
-
-        await waitFor(() => {
-            expect(screen.getByText('Detail Product')).toBeInTheDocument();
-            expect(screen.getByText('Giá: 500')).toBeInTheDocument();
-            expect(screen.getByText('Mô tả: Desc')).toBeInTheDocument();
-        });
+    // Wait for the API call to resolve and the component to re-render
+    await waitFor(() => {
+      // These values come from the 'GET /api/products/:id' handler in handlers.ts
+      expect(screen.getByText('Mock Product 1')).toBeInTheDocument();
+      // Use a regex for partial match since the text is split across nodes
+      expect(screen.getByText(/A detailed description/i)).toBeInTheDocument();
     });
+  });
 
-    it('displays error when product not found', async () => {
-        (productService.productService.getById as any).mockRejectedValue(new Error('Not Found'));
+  it('should display an error message if the product is not found', async () => {
+    // We can use server.use() to override the default handler for this one test
+    server.use(
+      http.get('http://localhost:8080/api/products/999', () => {
+        return HttpResponse.json({ message: 'Sản phẩm không tồn tại' }, { status: 404 });
+      })
+    );
 
-        render(<ProductDetail productId={999} />);
+    render(<ProductDetail productId={999} />);
 
-        await waitFor(() => {
-            expect(screen.getByRole('alert')).toHaveTextContent('Not Found');
-        });
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Sản phẩm không tồn tại');
     });
+  });
 });

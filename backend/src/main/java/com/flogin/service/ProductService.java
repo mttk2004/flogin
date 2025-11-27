@@ -22,12 +22,13 @@ public class ProductService {
   // Valid product categories
   private static final List<String> VALID_CATEGORIES = Arrays.asList(
       "Electronics", "Clothing", "Food", "Books", "Toys", "Sports", "Home", "Beauty", "Other");
-
-  // Validation constants
-  private static final int MAX_NAME_LENGTH = 200;
-  private static final int MAX_DESCRIPTION_LENGTH = 1000;
-  private static final BigDecimal MAX_PRICE = new BigDecimal("999999999.99");
-  private static final int MAX_QUANTITY = 999999;
+      
+  // Validation constants from assignment.pdf
+  private static final int MIN_NAME_LENGTH = 3;
+  private static final int MAX_NAME_LENGTH = 100;
+  private static final int MAX_DESCRIPTION_LENGTH = 500;
+  private static final BigDecimal MAX_PRICE = new BigDecimal("999999999");
+  private static final int MAX_QUANTITY = 99999;
 
   public ProductService(ProductRepository productRepository) {
     this.productRepository = productRepository;
@@ -144,8 +145,11 @@ public class ProductService {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Tên sản phẩm là bắt buộc");
     }
+    if (name.trim().length() < MIN_NAME_LENGTH) {
+        throw new IllegalArgumentException("Tên sản phẩm phải có ít nhất 3 ký tự");
+    }
     if (name.trim().length() > MAX_NAME_LENGTH) {
-      throw new IllegalArgumentException("Tên sản phẩm không được vượt quá 200 ký tự");
+      throw new IllegalArgumentException("Tên sản phẩm không được vượt quá 100 ký tự");
     }
   }
 
@@ -153,11 +157,11 @@ public class ProductService {
     if (price == null) {
       throw new IllegalArgumentException("Giá sản phẩm là bắt buộc");
     }
-    if (price.compareTo(BigDecimal.ZERO) < 0) {
-      throw new IllegalArgumentException("Giá sản phẩm không được âm");
+    if (price.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new IllegalArgumentException("Giá sản phẩm phải lớn hơn 0");
     }
     if (price.compareTo(MAX_PRICE) > 0) {
-      throw new IllegalArgumentException("Giá sản phẩm không được vượt quá 999,999,999.99");
+      throw new IllegalArgumentException("Giá sản phẩm không được vượt quá 999,999,999");
     }
   }
 
@@ -169,13 +173,13 @@ public class ProductService {
       throw new IllegalArgumentException("Số lượng không được âm");
     }
     if (quantity > MAX_QUANTITY) {
-      throw new IllegalArgumentException("Số lượng không được vượt quá 999,999");
+      throw new IllegalArgumentException("Số lượng không được vượt quá 99,999");
     }
   }
 
   private void validateDescription(String description) {
     if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
-      throw new IllegalArgumentException("Mô tả không được vượt quá 1000 ký tự");
+      throw new IllegalArgumentException("Mô tả không được vượt quá 500 ký tự");
     }
   }
 

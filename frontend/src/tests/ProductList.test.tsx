@@ -1,58 +1,40 @@
+// True Integration Test for ProductList
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import ProductList from '../components/ProductList';
-import * as productService from '../services/productService';
+import { server } from '../mocks/server';
+import { http, HttpResponse } from 'msw';
 
-vi.mock('../services/productService', () => ({
-    productService: {
-        getAll: vi.fn(),
-        delete: vi.fn()
-    }
-}));
+// No vi.mock() here! We are relying on the MSW server.
 
-describe('ProductList Component', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
+describe('ProductList Integration Test', () => {
+  it('should fetch and display a list of products', async () => {
+    // The handler in src/mocks/handlers.ts will catch this.
+    render(<ProductList />);
+
+    // Check for loading state first
+    expect(screen.getByText('Đang tải...')).toBeInTheDocument();
+
+    // Wait for the products to be displayed
+    await waitFor(() => {
+      // These values come from the 'GET /api/products' handler in handlers.ts
+      expect(screen.getByText('Mock Product 1')).toBeInTheDocument();
+      expect(screen.getByText('Mock Product 2')).toBeInTheDocument();
     });
+  });
 
-    it('renders product list correctly', async () => {
-        const mockProducts = {
-            products: [
-                { id: 1, name: 'Product 1', price: 100, quantity: 10, category: 'Electronics' }
-            ]
-        };
-        (productService.productService.getAll as any).mockResolvedValue(mockProducts);
+  it('should handle server error when fetching products', async () => {
+    // Override the default handler for this specific test to return an error
+    server.use(
+      http.get('http://localhost:8080/api/products', () => {
+        return HttpResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+      })
+    );
 
-        render(<ProductList />);
+    render(<ProductList />);
 
-        await waitFor(() => {
-            expect(screen.getByText('Product 1')).toBeInTheDocument();
-            expect(screen.getByText('100')).toBeInTheDocument();
-        });
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Internal Server Error');
     });
-
-    it('handles delete product', async () => {
-        const mockProducts = {
-            products: [
-                { id: 1, name: 'Product 1', price: 100, quantity: 10, category: 'Electronics' }
-            ]
-        };
-        (productService.productService.getAll as any).mockResolvedValue(mockProducts);
-        (productService.productService.delete as any).mockResolvedValue({});
-        
-        // Mock window.confirm
-        vi.spyOn(window, 'confirm').mockImplementation(() => true);
-
-        render(<ProductList />);
-
-        await waitFor(() => {
-            expect(screen.getByText('Product 1')).toBeInTheDocument();
-        });
-
-        fireEvent.click(screen.getByText('Xóa'));
-
-        await waitFor(() => {
-            expect(productService.productService.delete).toHaveBeenCalledWith(1);
-        });
-    });
+  });
 });

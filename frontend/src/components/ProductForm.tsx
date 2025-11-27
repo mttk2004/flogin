@@ -90,6 +90,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess }) => {
         />
       </div>
 
+      <div>
+        <label htmlFor="description">Mô tả</label>
+        <textarea
+          id="description"
+          value={formData.description}
+          onChange={e => setFormData({ ...formData, description: e.target.value })}
+        />
+      </div>
+
       <button type="submit" disabled={loading}>
         {loading ? 'Đang xử lý...' : 'Lưu'}
       </button>
