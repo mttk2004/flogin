@@ -84,6 +84,12 @@ SCENARIOS = {
         "steps": [
             ("Login Load Test", "root", "k6 run performance/login-test.js"),
         ]
+    },
+    "6": {
+        "title": "Phần Mở Rộng: Security Testing",
+        "steps": [
+            ("SQL Injection & Auth Bypass Tests", "backend", "mvn test -Dtest=SecurityTest"),
+        ]
     }
 }
 
@@ -121,10 +127,10 @@ def main():
         print("3. Mock Testing (Login + Product)")
         print("4. E2E Automation (Cypress)")
         print("5. Performance Testing (k6)")
+        print("6. Security Testing (Automated)")
         print("0. Thoát")
-        print("-" * 30)
         
-        choice = input(f"{Colors.BLUE}Nhập lựa chọn (0-5): {Colors.ENDC}")
+        choice = input(f"\n{Colors.BLUE}Nhập lựa chọn (0-6): {Colors.ENDC}")
         
         if choice == "0":
             print("Goodbye!")
