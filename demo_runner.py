@@ -83,6 +83,7 @@ SCENARIOS = {
         "note": "⚠️  LƯU Ý: Cần bật Backend Server (mvn spring-boot:run) ở terminal khác trước khi chạy!",
         "steps": [
             ("Login Load Test", "root", "k6 run performance/login-test.js"),
+            ("Product Load Test (Mixed Read/Write)", "root", "k6 run performance/product-test.js"),
         ]
     },
     "6": {
