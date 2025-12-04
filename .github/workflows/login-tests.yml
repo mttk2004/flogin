@@ -1,5 +1,7 @@
+# Workflow name: CI pipeline specifically for Login feature tests
 name: Login Tests CI
 
+# Event triggers: Run on push to main/develop, or pull requests to main
 on:
   push:
     branches: [ main, develop ]
@@ -7,38 +9,39 @@ on:
     branches: [ main ]
 
 jobs:
+  # Job 1: test-login - Runs unit and E2E tests specifically for the Login feature
   test-login:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # Checkout repository code
 
-      - name: Setup Node.js
+      - name: Setup Node.js # Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Install dependencies
+      - name: Install dependencies # Install npm packages for frontend
         run: |
           cd frontend
           npm ci
 
-      - name: Run Login Unit Tests
+      - name: Run Login Unit Tests # Execute frontend unit tests related to Login
         run: |
           cd frontend
           # Use a pattern to run all tests related to Login
           npm test -- "Login"
 
-      - name: Run Login E2E Tests
+      - name: Run Login E2E Tests # Execute Login E2E tests using Cypress
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
-          start: npm run dev
-          wait-on: 'http://localhost:5173'
+          start: npm run dev # Start frontend development server
+          wait-on: 'http://localhost:5173' # Wait for frontend to be available
           spec: cypress/e2e/login.cy.ts
 
-      - name: Upload Test Reports
-        if: always()
+      - name: Upload Test Reports # Upload test reports (coverage, screenshots, videos) as artifacts
+        if: always() # Always run this step even if previous steps fail
         uses: actions/upload-artifact@v4
         with:
           name: login-test-reports

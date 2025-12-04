@@ -1,5 +1,7 @@
+# Workflow name: Complete CI/CD Pipeline
 name: Complete CI/CD Pipeline
 
+# Event triggers: Run on push to main/develop, or pull requests to main
 on:
   push:
     branches: [ main, develop ]
@@ -7,10 +9,11 @@ on:
     branches: [ main ]
 
 jobs:
-  # Backend Tests Job
+  # Job 1: Backend Tests - Runs all backend unit and integration tests
   backend-tests:
     runs-on: ubuntu-latest
 
+    # Setup PostgreSQL service for integration tests
     services:
       postgres:
         image: postgres:16
@@ -27,16 +30,16 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # Checkout repository code
 
-      - name: Set up JDK 21
+      - name: Set up JDK 21 # Install Java Development Kit
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run Backend Unit Tests
+      - name: Run Backend Unit Tests # Execute backend unit tests
         run: |
           cd backend
           mvn clean test -Dspring.profiles.active=test
@@ -45,7 +48,7 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: password
 
-      - name: Run Backend Integration Tests
+      - name: Run Backend Integration Tests # Execute backend integration tests
         run: |
           cd backend
           mvn verify -Dspring.profiles.active=test
@@ -54,54 +57,55 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: password
 
-      - name: Generate Backend Test Coverage
+      - name: Generate Backend Test Coverage # Generate JaCoCo coverage report
         run: |
           cd backend
           mvn jacoco:report
 
-      - name: Upload Backend Coverage Report
+      - name: Upload Backend Coverage Report # Upload coverage report as artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage-report
           path: backend/target/site/jacoco/
           retention-days: 30
 
-  # Frontend Tests Job
+  # Job 2: Frontend Tests - Runs all frontend unit tests
   frontend-tests:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # Checkout repository code
 
-      - name: Setup Node.js
+      - name: Setup Node.js # Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install Frontend Dependencies
+      - name: Install Frontend Dependencies # Install npm packages
         run: |
           cd frontend
           npm ci
 
-      - name: Run Frontend Unit Tests
+      - name: Run Frontend Unit Tests # Execute frontend unit tests with coverage
         run: |
           cd frontend
           npm test -- --run --coverage
 
-      - name: Upload Frontend Coverage Report
+      - name: Upload Frontend Coverage Report # Upload coverage report as artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage-report
           path: frontend/coverage/
           retention-days: 30
 
-  # E2E Tests Job
+  # Job 3: E2E Tests - Runs end-to-end tests using Cypress
   e2e-tests:
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests]
+    needs: [backend-tests, frontend-tests] # Depends on backend and frontend tests passing
 
+    # Setup PostgreSQL service for E2E backend
     services:
       postgres:
         image: postgres:16
@@ -118,52 +122,52 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # Checkout repository code
 
-      - name: Set up JDK 21
+      - name: Set up JDK 21 # Install Java Development Kit
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Setup Node.js
+      - name: Setup Node.js # Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Build and Start Backend
+      - name: Build and Start Backend # Build backend and run as background service
         run: |
           cd backend
           mvn clean package -DskipTests
-          java -jar target/*.jar --spring.profiles.active=test &
+          java -jar target/*.jar --spring.profiles.active=test & # Start backend in background
           echo "Waiting for backend to start..."
-          timeout 60 bash -c 'until curl -f http://localhost:8080/actuator/health 2>/dev/null; do sleep 2; done' || true
+          timeout 60 bash -c 'until curl -f http://localhost:8080/actuator/health 2>/dev/null; do sleep 2; done' || true # Wait for backend healthcheck
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flogindb
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: password
 
-      - name: Install Frontend Dependencies
+      - name: Install Frontend Dependencies # Install npm packages
         run: |
           cd frontend
           npm ci
 
-      - name: Run Login E2E Tests
+      - name: Run Login E2E Tests # Execute Login E2E tests
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
-          start: npm run dev
-          wait-on: 'http://localhost:5173'
+          start: npm run dev # Start frontend development server
+          wait-on: 'http://localhost:5173' # Wait for frontend to be available
           wait-on-timeout: 120
           spec: cypress/e2e/login.cy.ts
         env:
           CYPRESS_BASE_URL: http://localhost:5173
 
-      - name: Run Product E2E Tests
+      - name: Run Product E2E Tests # Execute Product E2E tests
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
@@ -171,11 +175,11 @@ jobs:
           wait-on: 'http://localhost:5173'
           wait-on-timeout: 120
           spec: cypress/e2e/product.cy.ts
-          install: false
+          install: false # Dependencies already installed
         env:
           CYPRESS_BASE_URL: http://localhost:5173
 
-      - name: Upload E2E Test Screenshots
+      - name: Upload E2E Test Screenshots # Upload screenshots on test failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -183,7 +187,7 @@ jobs:
           path: frontend/cypress/screenshots/
           retention-days: 30
 
-      - name: Upload E2E Test Videos
+      - name: Upload E2E Test Videos # Upload E2E test videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -191,41 +195,41 @@ jobs:
           path: frontend/cypress/videos/
           retention-days: 30
 
-  # Build Job (only runs if all tests pass)
+  # Job 4: Build - Builds application artifacts (only on push to main if all tests pass)
   build:
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests, e2e-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend-tests, frontend-tests, e2e-tests] # Depends on all tests passing
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # Only runs on push to main
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # Checkout repository code
 
-      - name: Set up JDK 21
+      - name: Set up JDK 21 # Install Java Development Kit
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Setup Node.js
+      - name: Setup Node.js # Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Build Backend
+      - name: Build Backend # Build backend JAR
         run: |
           cd backend
           mvn clean package -DskipTests
 
-      - name: Build Frontend
+      - name: Build Frontend # Build frontend for production
         run: |
           cd frontend
           npm ci
           npm run build
 
-      - name: Upload Build Artifacts
+      - name: Upload Build Artifacts # Upload built JAR and dist folder as artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
