@@ -81,8 +81,8 @@ describe('Product E2E Automation Testing', () => {
     // Wait for the API call and assert
     cy.wait('@createProduct').its('request.body').should('deep.include', {
         name: newProduct.name,
-        price: newProduct.price.toString(),
-        quantity: newProduct.quantity.toString()
+        price: newProduct.price,
+        quantity: newProduct.quantity
     });
 
     // Check for success message

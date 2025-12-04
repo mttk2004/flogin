@@ -19,9 +19,13 @@ export interface ProductListResponse {
 }
 
 export const productService = {
-    getAll: async (page = 0, size = 10): Promise<ProductListResponse> => {
+    getAll: async (page = 0, size = 10, search = '', category = ''): Promise<ProductListResponse> => {
         try {
-            const response = await axios.get(`${API_URL}?page=${page}&size=${size}`);
+            let url = `${API_URL}?page=${page}&size=${size}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (category) url += `&category=${encodeURIComponent(category)}`;
+            
+            const response = await axios.get(url);
             return response.data.data;
         } catch (error: any) {
             throw error.response?.data || new Error('Lỗi khi tải danh sách sản phẩm');
