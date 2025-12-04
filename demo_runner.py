@@ -52,6 +52,16 @@ SCENARIOS = {
             ("Backend: Product Unit Tests", "backend", "mvn test -Dtest=ProductServiceTest"),
         ]
     },
+    "1a": {
+        "title": "Câu 2: Unit Testing with Coverage (Yêu cầu: FE >= 90%, BE >= 85%)",
+        "note": "ℹ️  Backend Reports nằm tại: backend/target/site/jacoco/index.html",
+        "steps": [
+            ("Frontend: Login Validation (Yêu cầu Coverage >= 90%)", "frontend", "npx vitest run src/tests/loginValidation.test.ts --coverage"),
+            ("Backend: AuthService (Yêu cầu Coverage >= 85%)", "backend", "mvn test -Dtest=AuthServiceTest"), 
+            ("Frontend: Product Validation (Yêu cầu Coverage >= 90%)", "frontend", "npx vitest run src/tests/productValidation.test.ts --coverage"),
+            ("Backend: ProductService (Yêu cầu Coverage >= 85%)", "backend", "mvn test -Dtest=ProductServiceTest"), 
+        ]
+    },
     "2": {
         "title": "Câu 3: Integration Testing",
         "steps": [
@@ -123,7 +133,8 @@ def main():
         
         print_header("FLOGIN DEMO AUTOMATION TOOL")
         print(f"{Colors.BOLD}Chọn kịch bản để chạy:{Colors.ENDC}")
-        print("1. Unit Testing (Login + Product)")
+        print("1. Unit Testing (Frontend & Backend)")
+        print("1a. Unit Testing with Coverage (Check Requirements)")
         print("2. Integration Testing (Login + Product)")
         print("3. Mock Testing (Login + Product)")
         print("4. E2E Automation (Cypress)")
