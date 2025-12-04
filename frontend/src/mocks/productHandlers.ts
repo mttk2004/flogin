@@ -31,7 +31,7 @@ export const productHandlers = [
   }),
 
   http.post('http://localhost:8080/api/products', async ({ request }) => {
-    const newProduct = await request.json();
+    const newProduct = await request.json() as object;
     return HttpResponse.json({
       success: true,
       data: { id: Date.now(), ...newProduct }
@@ -40,7 +40,7 @@ export const productHandlers = [
 
   http.put('http://localhost:8080/api/products/:id', async ({ request, params }) => {
     const { id } = params;
-    const updatedProduct = await request.json();
+    const updatedProduct = await request.json() as object;
     return HttpResponse.json({
       success: true,
       data: { id: Number(id), ...updatedProduct }

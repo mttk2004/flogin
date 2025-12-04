@@ -11,7 +11,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/products" element={<ProductList />} />
       {/* Add route for editing a product for completeness */}
-      <Route path="/products/edit/:id" element={<ProductForm />} />
+      <Route path="/products/edit/:id" element={<ProductForm onSuccess={() => {}} />} />
     </Routes>
   );
 }
